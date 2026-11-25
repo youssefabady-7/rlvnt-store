@@ -27,9 +27,13 @@ _mem_fail: dict = {}  # used only when KV is down (login is refused anyway), kep
 
 
 # ---------- password hashing ----------
+def _norm(p: str) -> str:
+    return unicodedata.normalize("NFKC", p).strip()
+
+
 def make_hash(password: str, iterations: int = 600_000) -> str:
     salt = secrets.token_bytes(16)
-    dk = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, iterations)
+    dk = hashlib.pbkdf2_hmac("sha256", _norm(password).encode(), salt, iterations)
     return f"pbkdf2_sha256${iterations}${base64.b64encode(salt).decode()}${base64.b64encode(dk).decode()}"
 
 
@@ -38,7 +42,7 @@ def check_password(password: str, stored: str) -> bool:
         algo, it, salt, dk = stored.split("$")
         if algo != "pbkdf2_sha256":
             return False
-        calc = hashlib.pbkdf2_hmac("sha256", password.encode(), base64.b64decode(salt), int(it))
+        calc = hashlib.pbkdf2_hmac("sha256", _norm(password).encode(), base64.b64decode(salt), int(it))
         return hmac.compare_digest(calc, base64.b64decode(dk))
     except (ValueError, binascii.Error):
         return False

@@ -212,3 +212,5 @@ $("restore").onclick = guard(async () => {
 });
 
 boot();
+
+$("showpw").addEventListener("change", (e) => { $("pw").type = e.target.checked ? "text" : "password"; });

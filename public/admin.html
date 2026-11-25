@@ -7,7 +7,8 @@
 <div id="login" class="loginwrap hidden">
   <form id="loginForm" class="logincard" autocomplete="on">
     <img src="images/logo.png" alt="RLVNT"><h1>Admin</h1>
-    <input id="pw" type="password" placeholder="Password" autocomplete="current-password" required>
+    <input id="pw" type="password" placeholder="Password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" required>
+    <label class="showpw"><input type="checkbox" id="showpw"> Show password</label>
     <button class="btn" id="loginBtn">Sign in</button>
     <p id="loginErr" class="err"></p>
   </form>
