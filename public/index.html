@@ -3,9 +3,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>RLVNT | Streetwear</title>
 <meta name="description" content="RLVNT. Graphic streetwear built on football, cinema and street culture. Every piece 800 EGP.">
-<link rel="icon" href="images/logo.png">
+<link rel="icon" href="images/logo.png"><meta name="theme-color" content="#111111"><meta property="og:title" content="RLVNT | Streetwear"><meta property="og:description" content="Graphic streetwear. Every piece 800 EGP. Cash on delivery."><meta property="og:image" content="images/real-madrid-set.jpg"><meta property="og:type" content="website">
 <link rel="stylesheet" href="style.css"></head>
 <body>
+<div class="annc">Cash on delivery · 3 to 5 day delivery · 800 EGP every piece</div>
 <div class="progress" id="progress"></div>
 <header id="nav">
   <a class="brand" href="#top"><img src="images/logo.png" alt="RLVNT"></a>
@@ -30,6 +31,7 @@
 <section class="shop" id="shop">
   <div class="shop-head reveal"><h2>The Drop</h2>
     <div class="filters" id="filters"></div></div>
+  <div class="tools"><input id="q" type="search" placeholder="Search pieces..." aria-label="Search"><select id="sort" aria-label="Sort"><option value="new">Featured</option><option value="az">Name A-Z</option><option value="za">Name Z-A</option></select><span id="resCount"></span></div>
   <div id="grid" class="grid"></div>
 </section>
 
@@ -76,6 +78,7 @@
   <div id="chips" class="chips"></div>
   <form id="form"><input id="input" placeholder="Message / اكتب رسالتك" autocomplete="off" maxlength="500" dir="auto"><button aria-label="Send">➤</button></form>
 </section>
+<button id="toTop" class="totop" aria-label="Back to top">↑</button>
 <div id="toast" class="toast"></div>
 <script src="config.js"></script><script src="app.js"></script>
 </body></html>

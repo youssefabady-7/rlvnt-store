@@ -267,5 +267,54 @@
   ],
   "description": "No Fear Sweatshirt and Pants Set from RLVNT.",
   "image": "images/b-007.jpg"
+ },
+ {
+  "id": "rl-019",
+  "name": "No Throne For The Enemy Sweatshirt",
+  "category": "sweatshirts",
+  "tags": [
+   "white",
+   "angel",
+   "devil",
+   "graphic"
+  ],
+  "description": "White oversized sweatshirt with an angel and devil graphic and red \"No Throne For The Enemy\" print.",
+  "image": "images/c-000.jpg"
+ },
+ {
+  "id": "rl-020",
+  "name": "Heaven State Misery Sweatshirt",
+  "category": "sweatshirts",
+  "tags": [
+   "white",
+   "cherub",
+   "script"
+  ],
+  "description": "White oversized sweatshirt with cherub graphic and red script \"Heavent State Misery\" print.",
+  "image": "images/c-001.jpg"
+ },
+ {
+  "id": "rl-021",
+  "name": "Scarface Script Sweatshirt",
+  "category": "sweatshirts",
+  "tags": [
+   "black",
+   "scarface",
+   "movie"
+  ],
+  "description": "Black oversized sweatshirt with a distressed Scarface portrait print and red script.",
+  "image": "images/c-002.jpg"
+ },
+ {
+  "id": "rl-022",
+  "name": "Sopranos Sweatshirt",
+  "category": "sweatshirts",
+  "tags": [
+   "black",
+   "sopranos",
+   "tv"
+  ],
+  "description": "Black oversized sweatshirt with a vintage-style Sopranos cast graphic.",
+  "image": "images/c-003.jpg"
  }
 ]

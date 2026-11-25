@@ -2,7 +2,10 @@ const API = window.RLVNT_API;
 const $ = (id) => document.getElementById(id);
 const el = (tag, text, cls) => { const e = document.createElement(tag); if (text != null) e.textContent = text; if (cls) e.className = cls; return e; };
 let cart = JSON.parse(localStorage.getItem("rl_cart") || "{}");
-let products = [], filter = "all";
+let products = [], filter = "all", query = "", sortBy = "new";
+let wish = JSON.parse(localStorage.getItem("rl_wish") || "[]");
+const saveWish = () => localStorage.setItem("rl_wish", JSON.stringify(wish));
+function toggleWish(id) { wish = wish.includes(id) ? wish.filter((x) => x !== id) : [...wish, id]; saveWish(); renderFilters(); toast(wish.includes(id) ? "Saved" : "Removed from saved"); }
 let sizes = JSON.parse(localStorage.getItem("rl_sizes") || "{}");
 const SIZES = ["S", "M", "L", "XL", "XXL"], SHIPPING = 100;
 let history = JSON.parse(sessionStorage.getItem("rl_chat") || "[]");
@@ -46,16 +49,21 @@ addEventListener("mousemove", (e) => {
 
 /* ---------- shop ---------- */
 function renderFilters() {
-  const cats = ["all", ...new Set(products.map((p) => p.category))]; const box = $("filters"); box.replaceChildren();
-  cats.forEach((c) => { const b = el("button", c, c === filter ? "on" : ""); b.onclick = () => { filter = c; renderFilters(); renderGrid(); }; box.append(b); });
+  const cats = ["all", ...new Set(products.map((p) => p.category)), "saved"]; const box = $("filters"); box.replaceChildren();
+  cats.forEach((c) => { const b = el("button", c === "saved" ? `♥ saved${wish.length ? " (" + wish.length + ")" : ""}` : c, c === filter ? "on" : ""); b.onclick = () => { filter = c; renderFilters(); renderGrid(); }; box.append(b); });
 }
 function renderGrid() {
   const g = $("grid"); g.replaceChildren();
-  const list = products.filter((p) => filter === "all" || p.category === filter);
+  let list = products.filter((p) => (filter === "all" || (filter === "saved" ? wish.includes(p.id) : p.category === filter)) && (!query || (p.name + " " + p.category + " " + (p.tags || []).join(" ")).toLowerCase().includes(query)));
+  if (sortBy === "az") list = [...list].sort((x, y) => x.name.localeCompare(y.name));
+  if (sortBy === "za") list = [...list].sort((x, y) => y.name.localeCompare(x.name));
+  $("resCount").textContent = `${list.length} piece${list.length === 1 ? "" : "s"}`;
+  if (!list.length) g.append(el("p", filter === "saved" ? "No saved pieces yet. Tap the heart on any piece." : "Nothing matches your search.", "nores"));
   list.forEach((p, i) => {
     const c = el("article", null, "card"); c.style.setProperty("--d", (i % 6) * 90 + "ms");
     const pic = el("div", null, "pic"); const img = document.createElement("img"); img.src = p.image; img.alt = p.name; img.loading = "lazy"; pic.append(img);
     pic.append(el("span", "Quick view", "qvpill"), el("i", null, "shine"));
+    const hb = el("button", wish.includes(p.id) ? "♥" : "♡", "heart" + (wish.includes(p.id) ? " on" : "")); hb.setAttribute("aria-label", "Save"); hb.onclick = (ev) => { ev.stopPropagation(); toggleWish(p.id); hb.classList.toggle("on"); hb.textContent = hb.classList.contains("on") ? "♥" : "♡"; if (filter === "saved") renderGrid(); }; pic.append(hb);
     const mv = (e) => { const r = c.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
       c.style.setProperty("--mx", x * 100 + "%"); c.style.setProperty("--my", y * 100 + "%");
       img.style.transform = `scale(1.08) rotateY(${(x - .5) * 16}deg) rotateX(${(.5 - y) * 16}deg) translateZ(30px)`; };
@@ -82,7 +90,12 @@ function openQV(p) {
   const sz = el("div", null, "pills"); let chosen = sizes[p.id] || "";
   SIZES.forEach((s) => { const b = el("button", s, "pill" + (s === chosen ? " on" : "")); b.type = "button"; b.onclick = () => { chosen = s; sizes[p.id] = s; localStorage.setItem("rl_sizes", JSON.stringify(sizes)); sz.querySelectorAll(".pill").forEach((x) => x.classList.toggle("on", x.textContent === s)); }; sz.append(b); });
   const add = el("button", "Add to cart", "btn full"); add.onclick = () => { addItem(p, im); renderCart(); setTimeout(() => closeQV(), 350); };
-  right.append(el("small", "Size (all available)"), sz, add, el("p", "Cash on delivery · 3 to 5 days · 100 EGP shipping", "note"));
+  const sg = el("button", "Size guide", "linkbtn"); sg.type = "button"; sg.onclick = () => right.querySelector(".guide").classList.toggle("open");
+  const guide = el("div", null, "guide"); guide.innerHTML = '<table><tr><th>Size</th><th>Length</th><th>Chest</th><th>Sleeve</th></tr><tr><td>S</td><td>72</td><td>58</td><td>63.6</td></tr><tr><td>M</td><td>74</td><td>61</td><td>64</td></tr><tr><td>L</td><td>76</td><td>64</td><td>64.4</td></tr><tr><td>XL</td><td>78</td><td>67</td><td>64.8</td></tr><tr><td>XXL</td><td>79</td><td>70</td><td>65.2</td></tr></table><small>Approximate, in cm, oversized fit. Ask the assistant if unsure.</small>';
+  const rel = el("div", null, "related"); rel.append(el("small", "You may also like"));
+  const rr = el("div", null, "rrow"); products.filter((x) => x.id !== p.id && x.category === p.category).slice(0, 4).concat(products.filter((x) => x.category !== p.category)).slice(0, 4).forEach((x) => { const t = el("button", null, "rthumb"); t.type = "button"; const ti = document.createElement("img"); ti.src = x.image; ti.alt = x.name; ti.title = x.name; t.append(ti); t.onclick = () => openQV(x); rr.append(t); }); rel.append(rr);
+  const wa = el("a", "Order via WhatsApp", "linkbtn"); wa.target = "_blank"; wa.rel = "noopener"; wa.href = "https://wa.me/201270383409?text=" + encodeURIComponent(`Hi RLVNT, I want the ${p.name} (${p.id}), size ${sizes[p.id] || "?"}`);
+  right.append(el("small", "Size (all available)"), sz, sg, guide, add, wa, rel, el("p", "Cash on delivery · 3 to 5 days · 100 EGP shipping", "note"));
   box.append(left, right); q.classList.add("on"); document.body.style.overflow = "hidden";
 }
 function closeQV() { $("qv").classList.remove("on"); document.body.style.overflow = ""; }
@@ -183,3 +196,9 @@ addEventListener("scroll", () => {
 splitHeadline(); restoreChat();
 fetch(API + "/api/products").then((r) => r.json()).then((d) => { products = d.products; renderFloaters(); renderFilters(); renderGrid(); renderCart(); })
   .catch(() => toast("Could not load products. Please refresh."));
+
+$("q").oninput = (e) => { query = e.target.value.trim().toLowerCase(); renderGrid(); };
+$("sort").onchange = (e) => { sortBy = e.target.value; renderGrid(); };
+(function skel() { const g = $("grid"); for (let i = 0; i < 6; i++) g.append(el("div", null, "skel")); })();
+addEventListener("scroll", () => { $("nav").classList.toggle("stuck", scrollY > 30); $("toTop").classList.toggle("on", scrollY > 900); }, { passive: true });
+$("toTop").onclick = () => scrollTo({ top: 0, behavior: "smooth" });
