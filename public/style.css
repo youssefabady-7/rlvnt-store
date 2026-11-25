@@ -163,7 +163,7 @@ body.annc-off header{top:0}
 .tools select{width:100%;min-width:0}
 .tools span{white-space:nowrap;text-align:right;min-width:70px}
 @media(max-width:720px){
-  .annc{font-size:.58rem;letter-spacing:.08em;height:30px}
+  .annc{font-size:.5rem;letter-spacing:.05em;height:30px}
   header{top:30px}
   .shop-head{flex-direction:column;align-items:flex-start}
   .filters{justify-content:flex-start;width:100%}
