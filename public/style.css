@@ -148,3 +148,27 @@ header#nav.stuck{box-shadow:0 8px 30px -12px rgba(0,0,0,.25)}
 .qvimg{position:relative}
 
 .netbanner{position:fixed;top:0;left:0;right:0;z-index:200;background:#111;color:#fff;text-align:center;padding:8px 12px;font-size:13px}.gerr{grid-column:1/-1;text-align:center;padding:40px 10px}.gerr p{margin-bottom:14px}
+
+/* layout fixes: announcement bar above fixed nav, tidy toolbar */
+.annc{position:fixed;top:0;left:0;right:0;z-index:60;height:34px;display:flex;align-items:center;justify-content:center;padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:transform .3s var(--ease)}
+header{top:34px;transition:top .3s var(--ease),background .3s,box-shadow .3s,padding .3s}
+body.annc-off .annc{transform:translateY(-100%)}
+body.annc-off header{top:0}
+.shop-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px 24px;max-width:100%}
+.shop-head h2{margin:0}
+.filters{max-width:100%;justify-content:flex-end}
+.filters button{white-space:nowrap}
+.tools{display:grid;grid-template-columns:minmax(0,1fr) 170px auto;gap:12px;align-items:center;max-width:100%}
+.tools input{min-width:0;width:100%}
+.tools select{width:100%;min-width:0}
+.tools span{white-space:nowrap;text-align:right;min-width:70px}
+@media(max-width:720px){
+  .annc{font-size:.58rem;letter-spacing:.08em;height:30px}
+  header{top:30px}
+  .shop-head{flex-direction:column;align-items:flex-start}
+  .filters{justify-content:flex-start;width:100%}
+  .filters button{padding:7px 12px;font-size:.66rem}
+  .tools{grid-template-columns:1fr 1fr;}
+  .tools input{grid-column:1/-1}
+  .tools span{text-align:right}
+}

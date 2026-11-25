@@ -216,5 +216,5 @@ addEventListener("offline", netBanner); addEventListener("online", netBanner);
 $("q").oninput = (e) => { query = e.target.value.trim().toLowerCase(); renderGrid(); };
 $("sort").onchange = (e) => { sortBy = e.target.value; renderGrid(); };
 (function skel() { const g = $("grid"); for (let i = 0; i < 6; i++) g.append(el("div", null, "skel")); })();
-addEventListener("scroll", () => { $("nav").classList.toggle("stuck", scrollY > 30); $("toTop").classList.toggle("on", scrollY > 900); }, { passive: true });
+addEventListener("scroll", () => { document.body.classList.toggle("annc-off", scrollY > 40); $("nav").classList.toggle("stuck", scrollY > 30); $("toTop").classList.toggle("on", scrollY > 900); }, { passive: true });
 $("toTop").onclick = () => scrollTo({ top: 0, behavior: "smooth" });
