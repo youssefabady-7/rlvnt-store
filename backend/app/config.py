@@ -16,3 +16,11 @@ ORDER_FROM = os.getenv("ORDER_FROM", "RLVNT Orders <onboarding@resend.dev>")
 SIZES = ["S", "M", "L", "XL", "XXL"]
 SUPPORT_EMAIL = "youssefabady6@gmail.com"
 SUPPORT_PHONE = "+201270383409"
+
+
+# Provider fallback chain. Each entry is only used when its key env var is set. All are legit free tiers,
+# one key per provider. Order = priority. Override models with the *_MODEL env vars.
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+PROVIDER_COOLDOWN_SECONDS = 90        # after a 429 / transient error
+PROVIDER_DAILY_COOLDOWN_SECONDS = 1800  # when the 429 says the daily quota is gone
