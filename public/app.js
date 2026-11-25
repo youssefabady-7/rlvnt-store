@@ -61,7 +61,7 @@ function renderGrid() {
   if (!list.length) g.append(el("p", filter === "saved" ? "No saved pieces yet. Tap the heart on any piece." : "Nothing matches your search.", "nores"));
   list.forEach((p, i) => {
     const c = el("article", null, "card"); c.style.setProperty("--d", (i % 6) * 90 + "ms");
-    const pic = el("div", null, "pic"); const img = document.createElement("img"); img.src = p.image; img.alt = p.name; img.loading = "lazy"; pic.append(img);
+    const pic = el("div", null, "pic"); const img = document.createElement("img"); img.src = p.image; img.alt = p.name; img.loading = "eager"; pic.append(img);
     pic.append(el("span", "Quick view", "qvpill"), el("i", null, "shine"));
     const hb = el("button", wish.includes(p.id) ? "♥" : "♡", "heart" + (wish.includes(p.id) ? " on" : "")); hb.setAttribute("aria-label", "Save"); hb.onclick = (ev) => { ev.stopPropagation(); toggleWish(p.id); hb.classList.toggle("on"); hb.textContent = hb.classList.contains("on") ? "♥" : "♡"; if (filter === "saved") renderGrid(); }; pic.append(hb);
     const mv = (e) => { const r = c.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
