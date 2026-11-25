@@ -43,6 +43,9 @@ Owner: Youssef Abady (youssefabady6@gmail.com, +201270383409). Last reviewed: 20
 5. **Automated tests.** `cd backend && pytest` covers pricing, the assistant, order fallback, health and catalog verification.
 6. **Safe config.** Price is forced to 800 EGP on the server; secrets only in environment variables.
 
+### 4.0 Assistant grounding and limits
+The chat assistant gets the live catalog, policies, the customer's cart and the viewed piece in its prompt, runs at temperature 0.2, and every reply is checked in code (`backend/app/guard.py`): prices must be 800 / 100 / valid totals, no discount claims, no unknown product names or ids. A failed check triggers one corrective retry, then a safe fallback that sends the customer to WhatsApp. This lowers hallucination a lot but cannot guarantee zero wrong sentences (for example free-text claims about stock or dates are not machine-checkable). Known limit: the OpenRouter free tier allows only 50 free-model requests per day for the whole site; when it runs out the chat shows 'assistant is busy'. Adding 10 USD of OpenRouter credits raises it to 1000 per day.
+
 ### 4.1 Durable order record (Vercel KV / Upstash Redis, free plan)
 Every order is written to a private Upstash Redis store (key `order:<number>`, 90 day expiry) BEFORE the email is sent. No public read: the store is only reachable with the REST token held in Vercel env vars, and the site has no endpoint that lists orders. It holds the order text needed for delivery (items, total, name, phone, address, notes), nothing else.
 - Email fails but the KV write worked: the customer sees a normal confirmation, the owner reads the order in KV (Vercel dashboard > Storage > the store > Open in Upstash > Data Browser, search `order:`). Logs only get `ORDER_STORED_EMAIL_FAILED` with order number and total.

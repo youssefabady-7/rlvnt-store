@@ -80,7 +80,9 @@ function renderGrid() {
   });
 }
 /* quick view */
+let viewingId = "";
 function openQV(p) {
+  viewingId = p.id;
   const q = $("qv"); const box = $("qvBody"); box.replaceChildren();
   const left = el("div", null, "qvimg"); const im = document.createElement("img"); im.src = p.image; im.alt = p.name; left.append(im);
   if (p.images && p.images.length > 1) { const th = el("div", null, "gthumbs"); p.images.forEach((u) => { const b = el("button", null, "gthumb"); b.type = "button"; const t = document.createElement("img"); t.src = u; t.alt = p.name; b.append(t); b.onclick = (e) => { e.stopPropagation(); im.src = u; }; th.append(b); }); left.append(th); }
@@ -99,7 +101,7 @@ function openQV(p) {
   right.append(el("small", "Size (all available)"), sz, sg, guide, add, wa, rel, el("p", "Cash on delivery · 3 to 5 days · 100 EGP shipping", "note"));
   box.append(left, right); q.classList.add("on"); document.body.style.overflow = "hidden";
 }
-function closeQV() { $("qv").classList.remove("on"); document.body.style.overflow = ""; }
+function closeQV() { viewingId = ""; $("qv").classList.remove("on"); document.body.style.overflow = ""; }
 $("qvClose").onclick = closeQV; $("qv").addEventListener("click", (e) => { if (e.target.id === "qv") closeQV(); });
 addEventListener("keydown", (e) => { if (e.key === "Escape") { closeQV(); openCart(false); } });
 const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: .12 });
@@ -168,13 +170,19 @@ const openCart = (on) => { $("cart").classList.toggle("on", on); $("scrim").clas
 $("cartBtn").onclick = () => { if ($("cart").classList.contains("mode-done")) mode(null); openCart(true); }; $("closeCart").onclick = () => openCart(false); $("scrim").onclick = () => openCart(false);
 
 /* ---------- chat ---------- */
-const CHIPS = ["Show me hoodies", "What sizes do you have?", "What's your return policy?", "عايز حاجة من ريال مدريد", "الشحن بكام وبيوصل امتى؟"];
-function rich(text, parent) { text.split(/(\*\*[^*]+\*\*)/g).forEach((s) => { if (s.startsWith("**") && s.endsWith("**")) parent.append(el("strong", s.slice(2, -2))); else parent.append(document.createTextNode(s)); }); }
+const CHIPS = ["Show me what's new", "Help me pick a size", "Shipping & delivery", "Return policy", "عايز حاجة من ريال مدريد", "الشحن بكام؟"];
+function rich(text, parent) {
+  text.split(/(\*\*[^*]+\*\*|\[\[\s*rl-\d{3}\s*\]\])/g).forEach((s) => {
+    if (s.startsWith("**") && s.endsWith("**")) parent.append(el("strong", s.slice(2, -2)));
+    else if (s.startsWith("[[")) { const id = s.replace(/[\[\]\s]/g, "").toLowerCase(); const p = products.find((x) => x.id === id); if (p) { const b = el("button", "View ↗", "plink"); b.type = "button"; b.onclick = () => openQV(p); parent.append(b); } }
+    else parent.append(document.createTextNode(s));
+  });
+}
 function bubble(role, text) { const m = el("div", null, "msg " + (role === "user" ? "me" : "bot")); m.dir = "auto"; rich(text, m); $("log").append(m); scroll(); return m; }
 function scroll() { const l = $("log"); l.scrollTop = l.scrollHeight; }
 function productCards(list) {
   if (!list || !list.length) return; const w = el("div", null, "pcards");
-  list.slice(0, 5).forEach((p) => { const c = el("div", null, "pc"); const im = document.createElement("img"); im.src = p.image; im.alt = p.name; const d = el("div", p.name); const b = el("button", "Add"); b.onclick = () => addItem(p, im); c.append(im, d, b); w.append(c); });
+  list.slice(0, 5).forEach((p) => { const c = el("div", null, "pc"); const im = document.createElement("img"); im.src = p.image; im.alt = p.name; im.onclick = () => openQV(p); const d = el("div", p.name); const pr = el("small", "800 EGP"); const b = el("button", "Add to cart"); b.onclick = () => addItem(p, im); c.append(im, d, pr, b); w.append(c); });
   $("log").append(w); scroll();
 }
 function openChat(on = true) { $("chat").classList.toggle("on", on); $("chatFab").style.display = on ? "none" : ""; if (on) $("input").focus(); }
@@ -184,9 +192,9 @@ function renderChips() { const b = $("chips"); b.replaceChildren(); CHIPS.forEac
 async function send(text) {
   text = (text || "").trim(); if (!text) return; $("chips").replaceChildren();
   bubble("user", text); history.push({ role: "user", content: text }); $("input").value = "";
-  const t = el("div", null, "msg bot typing"); t.append(el("i"), el("i"), el("i")); $("log").append(t); scroll();
+  const t = el("div", null, "msg bot typing"); t.setAttribute("aria-label", "typing"); t.append(el("i"), el("i"), el("i")); $("log").append(t); scroll();
   try {
-    const r = await fetch(API + "/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: history.slice(-14), cart }) });
+    const r = await fetch(API + "/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: history.slice(-14), cart, viewing: viewingId }) });
     const d = await r.json().catch(() => ({})); t.remove();
     if (!r.ok) { bubble("assistant", d.detail || "Something went wrong. حاول تاني بعد شوية."); history.pop(); return; }
     bubble("assistant", d.reply || "…"); history.push({ role: "assistant", content: d.reply || "" });
@@ -197,7 +205,7 @@ async function send(text) {
 $("form").onsubmit = (e) => { e.preventDefault(); send($("input").value); };
 function restoreChat() {
   if (history.length) history.forEach((m) => bubble(m.role, m.content));
-  else { bubble("assistant", "Hey, I'm the RLVNT assistant. Ask about pieces, sizing, shipping, returns or tell me what to add to your cart.\nأهلاً! اسألني عن أي قطعة أو الشحن أو الاسترجاع، أو قولي أضيف إيه للسلة."); renderChips(); }
+  else { bubble("assistant", "Hey, welcome to RLVNT 👋 I can help you find a piece, pick a size, check shipping and returns, or add things to your cart.\nأهلاً بيك! اسألني عن أي قطعة أو الشحن أو الاسترجاع، وأنا أضيفلك للسلة."); renderChips(); }
 }
 
 /* ---------- page chrome ---------- */

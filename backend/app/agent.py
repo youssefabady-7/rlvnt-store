@@ -2,10 +2,10 @@ import json
 import httpx
 from . import cart as cartlib, catalog
 from .knowledge import system_prompt
+from . import guard
 from .config import (OPENROUTER_API_KEY, OPENROUTER_URL, MODEL, FALLBACK_MODELS,
                      MAX_TOOL_STEPS, PRICE_EGP)
 
-SYSTEM = system_prompt()
 
 TOOLS = [
     {"type": "function", "function": {
@@ -67,16 +67,18 @@ async def _call(client: httpx.AsyncClient, model: str, messages: list) -> dict:
     r = await client.post(
         OPENROUTER_URL,
         headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}"},
-        json={"model": model, "messages": messages, "tools": TOOLS},
+        json={"model": model, "messages": messages, "tools": TOOLS, "temperature": 0.2},
     )
     r.raise_for_status()
     return r.json()["choices"][0]["message"]
 
 
-async def chat(history: list[dict], cart: dict, transport=None) -> dict:
+async def chat(history: list[dict], cart: dict, transport=None, viewing: str = "") -> dict:
     if not OPENROUTER_API_KEY:
         raise RuntimeError("OPENROUTER_API_KEY is not set")
-    messages = [{"role": "system", "content": SYSTEM}] + history[-12:]
+    messages = [{"role": "system", "content": system_prompt(cart, viewing)}] + history[-12:]
+    last_user = next((m["content"] for m in reversed(history) if m.get("role") == "user"), "")
+    retried = False
     shown: list = []
     async with httpx.AsyncClient(timeout=45, transport=transport) as client:
         for _ in range(MAX_TOOL_STEPS):
@@ -91,7 +93,17 @@ async def chat(history: list[dict], cart: dict, transport=None) -> dict:
                 raise RuntimeError(f"LLM unavailable: {last_err}")
             calls = msg.get("tool_calls") or []
             if not calls:
-                return {"reply": msg.get("content") or "", "cart": cart,
+                reply = msg.get("content") or ""
+                bad = guard.check(reply)
+                if bad and not retried:
+                    retried = True  # one corrective retry, then the safe fallback
+                    messages.append({"role": "assistant", "content": reply})
+                    messages.append({"role": "user", "content": "SYSTEM CHECK: your last reply broke the grounding rules (" + "; ".join(bad[:3]) + "). Reply again directly to the customer's last message (do not mention this check or your earlier reply), using only real catalog products, the flat 800 EGP price and 100 EGP shipping, no discounts, same language and tone."})
+                    continue
+                if bad:
+                    reply = guard.safe_reply(last_user)
+                reply = guard.clean_links(reply)
+                return {"reply": reply, "cart": cart,
                         "summary": cartlib.summary(cart), "products": shown}
             messages.append(msg)
             for c in calls:

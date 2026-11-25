@@ -34,6 +34,7 @@ class Msg(BaseModel):
 class ChatIn(BaseModel):
     messages: list[Msg] = Field(max_length=30)
     cart: dict[str, int] = {}
+    viewing: str = Field(default="", max_length=20)
 
 
 @app.get("/api/health")
@@ -60,7 +61,7 @@ async def chat(body: ChatIn, request: Request):
     if _limited(ip):
         raise HTTPException(status_code=429, detail="Too many messages, please wait a minute.")
     try:
-        return await agent.chat([m.model_dump() for m in body.messages], body.cart)
+        return await agent.chat([m.model_dump() for m in body.messages], body.cart, viewing=body.viewing)
     except Exception as e:  # surfaced to the user, logged for us (no silent pass)
         log.exception("chat failed")
         raise HTTPException(status_code=502, detail="The assistant is busy right now. Please try again in a moment.")
