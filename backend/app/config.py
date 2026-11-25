@@ -8,3 +8,11 @@ FALLBACK_MODELS = [m for m in os.getenv("OPENROUTER_FALLBACKS", "google/gemma-4-
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 ALLOWED_ORIGINS = [o for o in os.getenv("ALLOWED_ORIGINS", "*").split(",") if o]
 MAX_TOOL_STEPS = 5
+
+SHIPPING_EGP = 100
+ORDER_EMAIL = os.getenv("ORDER_EMAIL", "youssefabady6@gmail.com")
+RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
+ORDER_FROM = os.getenv("ORDER_FROM", "RLVNT Orders <onboarding@resend.dev>")
+SIZES = ["S", "M", "L", "XL", "XXL"]
+SUPPORT_EMAIL = "youssefabady6@gmail.com"
+SUPPORT_PHONE = "+201270383409"

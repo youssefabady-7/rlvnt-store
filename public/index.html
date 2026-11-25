@@ -41,16 +41,32 @@
   </div>
 </section>
 
-<footer><img src="images/logo.png" alt="RLVNT"><div><a href="policies.html">Ordering, shipping, returns, care and privacy</a><p>Prices in EGP. Checkout and support details are being finalized.</p></div></footer>
+<footer><img src="images/logo.png" alt="RLVNT"><div><a href="policies.html">Ordering, shipping, returns, care and privacy</a><p>Prices in EGP. Support: youssefabady6@gmail.com · +201270383409</p></div></footer>
 
 <div class="scrim" id="scrim"></div>
 <aside id="cart" class="drawer" aria-label="Cart">
   <div class="drawer-head"><h3>Your cart</h3><button id="closeCart" class="x" aria-label="Close">×</button></div>
   <div id="cartItems" class="cart-items"></div>
-  <div class="drawer-foot"><div class="total"><span>Total</span><b><span id="total">0</span> EGP</b></div>
-    <p class="note">Online checkout is being finalized. Your selection is saved here, and the assistant can help with your order questions.</p>
-    <button class="btn full" id="askFromCart">Ask the assistant</button></div>
-</aside>
+  <div class="drawer-foot" id="foot">
+    <div class="sum"><span>Subtotal</span><span><span id="sub">0</span> EGP</span></div>
+    <div class="sum"><span>Shipping (3 to 5 days)</span><span><span id="ship">0</span> EGP</span></div>
+    <div class="total"><span>Total, cash on delivery</span><b><span id="total">0</span> EGP</b></div>
+    <button class="btn full" id="checkoutBtn">Place order</button>
+    <p class="note">Pay cash when your order arrives. All sizes available.</p></div>
+  <form id="orderForm" class="orderform hidden" novalidate>
+    <h4>Delivery details</h4>
+    <label>Full name<input name="name" required maxlength="80" autocomplete="name"></label>
+    <label>Phone / WhatsApp<input name="phone" required maxlength="20" inputmode="tel" autocomplete="tel" placeholder="01xxxxxxxxx"></label>
+    <label>City / governorate<input name="city" required maxlength="60"></label>
+    <label>Address<textarea name="address" required maxlength="300" rows="2"></textarea></label>
+    <label>Notes (optional)<input name="notes" maxlength="300"></label>
+    <input name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <p class="err" id="orderErr"></p>
+    <button class="btn full" id="submitOrder">Confirm order · <span id="total2">0</span> EGP</button>
+    <button type="button" class="btn ghost full" id="backCart">Back to cart</button>
+  </form>
+  <div id="orderDone" class="orderdone hidden"></div>
+  </aside>
 
 <button id="chatFab" class="fab" aria-label="Open assistant"><span>Ask RLVNT</span></button>
 <section id="chat" class="chat" aria-label="RLVNT assistant">

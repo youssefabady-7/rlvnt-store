@@ -41,3 +41,18 @@ def test_set_quantity():
     assert cart == {"rl-001": 3}
     cart, out = agent.run_tool("set_quantity", {"product_id": "rl-001", "quantity": 0}, cart, [])
     assert cart == {}
+
+
+def test_order_pricing_and_email(monkeypatch):
+    import asyncio, httpx
+    from app import orders
+    o = orders.OrderIn(name="Test User", phone="+201000000000", city="Cairo", address="1 Test St",
+                       items=[{"id": "rl-001", "size": "m", "qty": 2}])
+    pr = orders.price(o)
+    assert pr["subtotal"] == 1600 and pr["total"] == 1700
+    sent = {}
+    monkeypatch.setattr(orders, "RESEND_API_KEY", "k")
+    def h(req): sent["b"] = req.content.decode(); return httpx.Response(200, json={"id": "1"})
+    s, t, hh = orders.render(o, "RL-1", pr)
+    asyncio.run(orders.send_email(s, t, hh, httpx.MockTransport(h)))
+    assert "youssefabady6@gmail.com" in sent["b"] and "1700" in sent["b"]

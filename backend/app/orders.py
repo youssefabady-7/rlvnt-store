@@ -1,0 +1,71 @@
+import html, random, re, string, time
+import httpx
+from pydantic import BaseModel, Field, field_validator
+from . import catalog
+from .config import (PRICE_EGP, SHIPPING_EGP, SIZES, ORDER_EMAIL, RESEND_API_KEY, ORDER_FROM)
+
+
+class Line(BaseModel):
+    id: str
+    size: str
+    qty: int = Field(ge=1, le=20)
+
+    @field_validator("size")
+    @classmethod
+    def _size(cls, v):
+        v = v.upper()
+        if v not in SIZES:
+            raise ValueError("invalid size")
+        return v
+
+
+class OrderIn(BaseModel):
+    name: str = Field(min_length=2, max_length=80)
+    phone: str = Field(min_length=8, max_length=20)
+    city: str = Field(min_length=2, max_length=60)
+    address: str = Field(min_length=5, max_length=300)
+    notes: str = Field(default="", max_length=300)
+    items: list[Line] = Field(min_length=1, max_length=30)
+    website: str = ""  # honeypot, real users leave it empty
+
+    @field_validator("phone")
+    @classmethod
+    def _phone(cls, v):
+        if not re.fullmatch(r"\+?[0-9 ()-]{8,20}", v):
+            raise ValueError("invalid phone")
+        return v
+
+
+def order_number() -> str:
+    tail = "".join(random.choices(string.ascii_uppercase + string.digits, k=3))
+    return f"RL-{int(time.time()) % 10**8:08d}{tail}"
+
+
+def price(order: OrderIn) -> dict:
+    lines, subtotal = [], 0
+    for l in order.items:
+        p = catalog.by_id(l.id)
+        if not p:
+            raise ValueError(f"unknown product {l.id}")
+        lines.append({"name": p["name"], "id": l.id, "size": l.size, "qty": l.qty, "total": l.qty * PRICE_EGP})
+        subtotal += l.qty * PRICE_EGP
+    return {"lines": lines, "subtotal": subtotal, "shipping": SHIPPING_EGP, "total": subtotal + SHIPPING_EGP}
+
+
+def render(order: OrderIn, num: str, pr: dict) -> tuple[str, str, str]:
+    rows = "\n".join(f"- {l['qty']} x {l['name']} ({l['id']}), size {l['size']}: {l['total']} EGP" for l in pr["lines"])
+    text = (f"New RLVNT order {num} (cash on delivery)\n\n{rows}\n\nSubtotal: {pr['subtotal']} EGP\nShipping: {pr['shipping']} EGP\n"
+            f"TOTAL TO COLLECT: {pr['total']} EGP\n\nCustomer: {order.name}\nPhone/WhatsApp: {order.phone}\nCity: {order.city}\n"
+            f"Address: {order.address}\nNotes: {order.notes or '-'}\n")
+    h = "<br>".join(html.escape(text).split("\n"))
+    return f"New RLVNT order {num}: {pr['total']} EGP COD", text, f"<div style='font-family:Arial'>{h}</div>"
+
+
+async def send_email(subject: str, text: str, body_html: str, transport=None) -> None:
+    if not RESEND_API_KEY:
+        raise RuntimeError("order email is not configured")
+    async with httpx.AsyncClient(timeout=20, transport=transport) as c:
+        r = await c.post("https://api.resend.com/emails", headers={"Authorization": f"Bearer {RESEND_API_KEY}"},
+                         json={"from": ORDER_FROM, "to": [ORDER_EMAIL], "subject": subject, "text": text, "html": body_html})
+    if r.status_code >= 300:
+        raise RuntimeError(f"email provider error {r.status_code}")

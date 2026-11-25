@@ -3,6 +3,8 @@ const $ = (id) => document.getElementById(id);
 const el = (tag, text, cls) => { const e = document.createElement(tag); if (text != null) e.textContent = text; if (cls) e.className = cls; return e; };
 let cart = JSON.parse(localStorage.getItem("rl_cart") || "{}");
 let products = [], filter = "all";
+let sizes = JSON.parse(localStorage.getItem("rl_sizes") || "{}");
+const SIZES = ["S", "M", "L", "XL", "XXL"], SHIPPING = 100;
 let history = JSON.parse(sessionStorage.getItem("rl_chat") || "[]");
 
 /* ---------- helpers ---------- */
@@ -73,16 +75,47 @@ function renderCart() {
     m.onclick = () => { const c = { ...cart }; if (c[id] > 1) c[id]--; else delete c[id]; saveCart(c); };
     pl.onclick = () => saveCart({ ...cart, [id]: Math.min(q + 1, 20) });
     qty.append(m, el("span", String(q)), pl); info.append(qty);
+    const sz = el("div", null, "sz"); const sel = document.createElement("select"); sel.dataset.id = id;
+    const ph = el("option", "Size"); ph.value = ""; sel.append(ph); SIZES.forEach((s) => { const o = el("option", s); o.value = s; sel.append(o); });
+    sel.value = sizes[id] || ""; sel.onchange = () => { sizes[id] = sel.value; localStorage.setItem("rl_sizes", JSON.stringify(sizes)); sel.classList.remove("bad"); };
+    sz.append(sel); info.append(sz);
     row.append(im, info, el("b", `${q * p.price}`)); box.append(row);
   }
   if (!count) box.append(el("p", "Your cart is empty.", "empty"));
-  $("total").textContent = total; $("count").textContent = count;
+  const ship = count ? SHIPPING : 0;
+  $("sub").textContent = total; $("ship").textContent = ship; $("total").textContent = total + ship; $("total2").textContent = total + ship; $("count").textContent = count;
+  $("checkoutBtn").disabled = !count;
 }
+const mode = (m) => { const d = $("cart"); d.classList.remove("mode-form", "mode-done"); if (m) d.classList.add("mode-" + m); $("orderForm").classList.toggle("hidden", m !== "form"); $("orderDone").classList.toggle("hidden", m !== "done"); };
+$("checkoutBtn").onclick = () => {
+  const missing = [...document.querySelectorAll("#cartItems select")].filter((s) => !s.value);
+  if (missing.length) { missing.forEach((s) => s.classList.add("bad")); toast("Choose a size for each piece"); return; }
+  $("orderErr").textContent = ""; mode("form");
+};
+$("backCart").onclick = () => mode(null);
+$("orderForm").onsubmit = async (e) => {
+  e.preventDefault(); const f = e.target; const btn = $("submitOrder"); $("orderErr").textContent = "";
+  const v = (n) => f.elements[n].value.trim();
+  if (v("name").length < 2 || v("city").length < 2 || v("address").length < 5 || !/^\+?[0-9 ()-]{8,20}$/.test(v("phone"))) { $("orderErr").textContent = "Please fill name, a valid phone, city and address."; return; }
+  const items = Object.entries(cart).map(([id, qty]) => ({ id, size: sizes[id], qty }));
+  btn.disabled = true;
+  try {
+    const r = await fetch(API + "/api/order", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: v("name"), phone: v("phone"), city: v("city"), address: v("address"), notes: v("notes"), website: v("website"), items }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) { $("orderErr").textContent = typeof d.detail === "string" ? d.detail : "Please check your details and try again."; btn.disabled = false; return; }
+    const box = $("orderDone"); box.replaceChildren(el("div", "✓", "check"), el("h3", "Order placed"), el("p", `Order ${d.order_number}`), el("p", `Pay ${d.total} EGP cash on delivery. Delivery in 3 to 5 days. We may confirm by phone or WhatsApp.`),
+      el("p", "Questions? youssefabady6@gmail.com · +201270383409"));
+    const ok = el("button", "Continue shopping", "btn full"); ok.onclick = () => { mode(null); openCart(false); }; box.append(ok);
+    saveCart({}); sizes = {}; localStorage.removeItem("rl_sizes"); f.reset(); mode("done");
+  } catch { $("orderErr").textContent = "Connection problem. Please try again."; }
+  btn.disabled = false;
+};
 const openCart = (on) => { $("cart").classList.toggle("on", on); $("scrim").classList.toggle("on", on); };
-$("cartBtn").onclick = () => openCart(true); $("closeCart").onclick = () => openCart(false); $("scrim").onclick = () => openCart(false);
+$("cartBtn").onclick = () => { if ($("cart").classList.contains("mode-done")) mode(null); openCart(true); }; $("closeCart").onclick = () => openCart(false); $("scrim").onclick = () => openCart(false);
 
 /* ---------- chat ---------- */
-const CHIPS = ["Show me hoodies", "What's your return policy?", "How do I wash the prints?", "عايز حاجة من ريال مدريد", "الشحن بكام؟"];
+const CHIPS = ["Show me hoodies", "What sizes do you have?", "What's your return policy?", "عايز حاجة من ريال مدريد", "الشحن بكام وبيوصل امتى؟"];
 function rich(text, parent) { text.split(/(\*\*[^*]+\*\*)/g).forEach((s) => { if (s.startsWith("**") && s.endsWith("**")) parent.append(el("strong", s.slice(2, -2))); else parent.append(document.createTextNode(s)); }); }
 function bubble(role, text) { const m = el("div", null, "msg " + (role === "user" ? "me" : "bot")); m.dir = "auto"; rich(text, m); $("log").append(m); scroll(); return m; }
 function scroll() { const l = $("log"); l.scrollTop = l.scrollHeight; }

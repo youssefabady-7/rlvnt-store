@@ -3,8 +3,8 @@ from collections import defaultdict, deque
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from . import agent, catalog, cart as cartlib
-from .config import ALLOWED_ORIGINS, PRICE_EGP
+from . import agent, catalog, cart as cartlib, orders
+from .config import ALLOWED_ORIGINS, PRICE_EGP, SHIPPING_EGP, SIZES
 
 log = logging.getLogger("rlvnt")
 app = FastAPI(title="RLVNT API")
@@ -43,7 +43,7 @@ def health():
 
 @app.get("/api/products")
 def products():
-    return {"currency": "EGP", "price": PRICE_EGP, "products": catalog.load_products()}
+    return {"currency": "EGP", "price": PRICE_EGP, "shipping": SHIPPING_EGP, "sizes": SIZES, "products": catalog.load_products()}
 
 
 @app.post("/api/cart/summary")
@@ -61,3 +61,31 @@ async def chat(body: ChatIn, request: Request):
     except Exception as e:  # surfaced to the user, logged for us (no silent pass)
         log.exception("chat failed")
         raise HTTPException(status_code=502, detail="The assistant is busy right now. Please try again in a moment.")
+
+
+_order_hits: dict = defaultdict(deque)
+
+
+@app.post("/api/order")
+async def place_order(body: orders.OrderIn, request: Request):
+    ip = (request.headers.get("x-forwarded-for") or (request.client.host if request.client else "x")).split(",")[0].strip()
+    now, q = time.time(), _order_hits[ip]
+    while q and now - q[0] > 600:
+        q.popleft()
+    if len(q) >= 5:
+        raise HTTPException(status_code=429, detail="Too many orders from this connection. Please contact support.")
+    if body.website:  # honeypot tripped: pretend success
+        return {"ok": True, "order_number": orders.order_number()}
+    try:
+        pr = orders.price(body)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    num = orders.order_number()
+    subject, text, html_ = orders.render(body, num, pr)
+    try:
+        await orders.send_email(subject, text, html_)
+    except Exception:
+        log.exception("order email failed")
+        raise HTTPException(status_code=503, detail="We could not send your order right now. Please contact support on WhatsApp.")
+    q.append(now)
+    return {"ok": True, "order_number": num, "total": pr["total"], "shipping": pr["shipping"]}
