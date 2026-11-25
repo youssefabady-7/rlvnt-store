@@ -13,7 +13,7 @@ def test_order_falls_back_to_whatsapp_when_email_fails(monkeypatch):
     monkeypatch.setattr(orders, "send_email", boom)
     r = TestClient(main.app).post("/api/order", json=ORDER, headers={"x-forwarded-for": "9.9.9.9"})
     d = r.json()
-    assert r.status_code == 200 and d["ok"] and d["fallback"]
+    assert r.status_code == 200 and d["fallback"] and d["confirmed"] is False
     assert d["whatsapp_url"].startswith("https://wa.me/201270383409?text=")
     assert d["order_number"] in d["whatsapp_url"].replace("%20", " ") or d["order_number"]
 
@@ -35,3 +35,16 @@ def test_catalog_backup_script_verifies_live_catalog():
     root = Path(__file__).resolve().parents[2]
     r = subprocess.run([sys.executable, str(root / "scripts" / "catalog_backup.py"), "verify"], capture_output=True, text=True)
     assert r.returncode == 0, r.stdout
+
+
+def test_fallback_log_has_no_pii(monkeypatch, caplog):
+    async def boom(*a, **k):
+        raise RuntimeError("x")
+    monkeypatch.setattr(orders, "send_email", boom)
+    with caplog.at_level("ERROR"):
+        TestClient(main.app).post("/api/order", json=ORDER, headers={"x-forwarded-for": "7.7.7.7"})
+    t = " ".join(r.getMessage() for r in caplog.records)
+    assert "ORDER_FALLBACK" in t and "RL-" in t
+    for k in ("name", "address", "notes", "city"):
+        assert not ORDER.get(k) or str(ORDER[k]) not in t
+    assert str(ORDER["phone"]) not in t and orders.mask_phone("01012345678").endswith("678") and "0101" not in orders.mask_phone("01012345678")

@@ -145,9 +145,18 @@ $("orderForm").onsubmit = async (e) => {
       body: JSON.stringify({ name: v("name"), phone: v("phone"), city: v("city"), address: v("address"), notes: v("notes"), website: v("website"), items }) });
     const d = await r.json().catch(() => ({}));
     if (!r.ok) { $("orderErr").textContent = typeof d.detail === "string" ? d.detail : "Please check your details and try again."; btn.disabled = false; return; }
-    const box = $("orderDone"); box.replaceChildren(el("div", "✓", "check"), el("h3", "Order placed"), el("p", `Order ${d.order_number}`), el("p", `Pay ${d.total} EGP cash on delivery. Delivery in 3 to 5 days. We may confirm by phone or WhatsApp.`),
+    const box = $("orderDone");
+    if (d.fallback && d.whatsapp_url) {
+      box.replaceChildren(el("div", "!", "check"), el("h3", "Almost done: send your order on WhatsApp"), el("p", `Reference ${d.order_number}`),
+        el("p", "Your order is NOT confirmed yet. Our order system could not reach us. Tap the button below and press send in WhatsApp so we receive it."),
+        el("p", `Total ${d.total} EGP cash on delivery.`));
+      const w = el("a", "Send order on WhatsApp now", "btn full"); w.href = d.whatsapp_url; w.target = "_blank"; w.rel = "noopener"; box.append(w);
+      box.append(el("p", "Questions? youssefabady6@gmail.com · +201270383409"));
+      const ok = el("button", "Back to shop", "btn full"); ok.onclick = () => { mode(null); openCart(false); }; box.append(ok);
+      saveCart({}); sizes = {}; localStorage.removeItem("rl_sizes"); f.reset(); mode("done"); return;
+    }
+    box.replaceChildren(el("div", "✓", "check"), el("h3", "Order placed"), el("p", `Order ${d.order_number}`), el("p", `Pay ${d.total} EGP cash on delivery. Delivery in 3 to 5 days. We may confirm by phone or WhatsApp.`),
       el("p", "Questions? youssefabady6@gmail.com · +201270383409"));
-    if (d.fallback && d.whatsapp_url) { box.append(el("p", "Our email is slow right now. Tap below to also send your order on WhatsApp so we get it instantly.")); const w = el("a", "Send order on WhatsApp", "btn full"); w.href = d.whatsapp_url; w.target = "_blank"; w.rel = "noopener"; box.append(w); }
     const ok = el("button", "Continue shopping", "btn full"); ok.onclick = () => { mode(null); openCart(false); }; box.append(ok);
     saveCart({}); sizes = {}; localStorage.removeItem("rl_sizes"); f.reset(); mode("done");
   } catch {

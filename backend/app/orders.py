@@ -71,6 +71,11 @@ async def send_email(subject: str, text: str, body_html: str, transport=None) ->
         raise RuntimeError(f"email provider error {r.status_code}")
 
 
+def mask_phone(p: str) -> str:
+    d = re.sub(r"\D", "", p)
+    return "*" * max(len(d) - 3, 0) + d[-3:]
+
+
 def whatsapp_link(text: str) -> str:
     """Prefilled WhatsApp link so the customer can send the order themselves if email delivery fails."""
     from urllib.parse import quote

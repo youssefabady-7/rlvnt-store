@@ -87,11 +87,13 @@ async def place_order(body: orders.OrderIn, request: Request):
     subject, text, html_ = orders.render(body, num, pr)
     sent = await orders.deliver(subject, text, html_)
     if not sent:
-        # Continuity fallback: the full order goes to the platform log (recoverable from Vercel logs)
-        # and the customer gets a prefilled WhatsApp message so the order is never lost.
-        log.error("ORDER_FALLBACK %s", json.dumps({"order": num, "text": text}, ensure_ascii=False))
+        # Fallback: the order is NOT confirmed. Log a minimal trail (no name, address or notes) and make the
+        # customer send the prefilled WhatsApp message. Vercel runtime logs are short-lived, so this is a hint only.
+        items = [f"{l.qty}x{l.id}/{l.size}" for l in body.items]
+        log.error("ORDER_FALLBACK %s", json.dumps({"order": num, "items": items, "total": pr["total"],
+                  "phone": orders.mask_phone(body.phone)}))
         q.append(now)
-        return {"ok": True, "order_number": num, "total": pr["total"], "shipping": pr["shipping"],
+        return {"ok": True, "confirmed": False, "order_number": num, "total": pr["total"], "shipping": pr["shipping"],
                 "fallback": True, "whatsapp_url": orders.whatsapp_link(text)}
     q.append(now)
-    return {"ok": True, "order_number": num, "total": pr["total"], "shipping": pr["shipping"]}
+    return {"ok": True, "confirmed": True, "order_number": num, "total": pr["total"], "shipping": pr["shipping"]}
