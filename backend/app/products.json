@@ -316,5 +316,170 @@
   ],
   "description": "Black oversized sweatshirt with a vintage-style Sopranos cast graphic.",
   "image": "images/c-003.jpg"
+ },
+ {
+  "id": "rl-023",
+  "name": "Doctor Doom Washed Hoodie",
+  "category": "hoodies",
+  "tags": [
+   "grey",
+   "washed",
+   "doom",
+   "marvel"
+  ],
+  "description": "Washed grey oversized hoodie with a Doctor Doom embroidered-style chest graphic.",
+  "image": "images/c-004.jpg"
+ },
+ {
+  "id": "rl-024",
+  "name": "Starboy Messi Hoodie",
+  "category": "hoodies",
+  "tags": [
+   "black",
+   "messi",
+   "argentina",
+   "starboy"
+  ],
+  "description": "Black oversized hoodie with a big Starboy Messi 19 graphic on the back.",
+  "image": "images/c-005.jpg"
+ },
+ {
+  "id": "rl-025",
+  "name": "Cristiano Ronaldo The Legend Sweatshirt",
+  "category": "sweatshirts",
+  "tags": [
+   "black",
+   "ronaldo",
+   "football"
+  ],
+  "description": "Black oversized sweatshirt with a gold The Legend Cristiano Ronaldo collage.",
+  "image": "images/c-006.jpg"
+ },
+ {
+  "id": "rl-026",
+  "name": "Pedri Maestro Sweatshirt",
+  "category": "sweatshirts",
+  "tags": [
+   "black",
+   "pedri",
+   "barca",
+   "football"
+  ],
+  "description": "Black oversized sweatshirt with a Pedri Maestro Barca graphic.",
+  "image": "images/c-007.jpg"
+ },
+ {
+  "id": "rl-027",
+  "name": "Messi Barca Sweatshirt",
+  "category": "sweatshirts",
+  "tags": [
+   "black",
+   "messi",
+   "barca",
+   "football"
+  ],
+  "description": "Black oversized sweatshirt with a vintage Messi Barca collage.",
+  "image": "images/c-008.jpg"
+ },
+ {
+  "id": "rl-028",
+  "name": "Happy Memories Zip Hoodie Set",
+  "category": "sets",
+  "tags": [
+   "black",
+   "zip",
+   "set"
+  ],
+  "description": "Black cropped zip hoodie with matching wide-leg sweatpants.",
+  "image": "images/c-009.jpg"
+ },
+ {
+  "id": "rl-029",
+  "name": "Tony Soprano Sweatshirt",
+  "category": "sweatshirts",
+  "tags": [
+   "black",
+   "sopranos",
+   "tv"
+  ],
+  "description": "Black oversized sweatshirt with a Tony Soprano portrait graphic.",
+  "image": "images/c-010.jpg"
+ },
+ {
+  "id": "rl-030",
+  "name": "Blessed Bomber Set",
+  "category": "sets",
+  "tags": [
+   "black",
+   "bomber",
+   "jacket",
+   "set"
+  ],
+  "description": "Black bomber jacket with matching sweatpants and script detailing.",
+  "image": "images/c-011.jpg"
+ },
+ {
+  "id": "rl-031",
+  "name": "Grey Zip Hoodie Set",
+  "category": "sets",
+  "tags": [
+   "grey",
+   "zip",
+   "set",
+   "basic"
+  ],
+  "description": "Light grey zip hoodie with matching wide-leg sweatpants.",
+  "image": "images/c-012.jpg"
+ },
+ {
+  "id": "rl-032",
+  "name": "Ravage Sweatshirt",
+  "category": "sweatshirts",
+  "tags": [
+   "black",
+   "ravage",
+   "skull",
+   "panther"
+  ],
+  "description": "Black oversized sweatshirt with a Ravage panther and skull graphic.",
+  "image": "images/c-013.jpg"
+ },
+ {
+  "id": "rl-033",
+  "name": "Spider-Man Deadlift Sweatshirt",
+  "category": "sweatshirts",
+  "tags": [
+   "black",
+   "spiderman",
+   "marvel",
+   "gym"
+  ],
+  "description": "Black oversized sweatshirt with a Spider-Man deadlift graphic.",
+  "image": "images/c-014.jpg"
+ },
+ {
+  "id": "rl-034",
+  "name": "Real Madrid Los Blancos Sweatshirt",
+  "category": "sweatshirts",
+  "tags": [
+   "black",
+   "real madrid",
+   "football"
+  ],
+  "description": "Black oversized sweatshirt with a Real Madrid Los Blancos collage.",
+  "image": "images/c-015.jpg"
+ },
+ {
+  "id": "rl-035",
+  "name": "Argentina 19 Adidas Set",
+  "category": "sets",
+  "tags": [
+   "black",
+   "argentina",
+   "adidas",
+   "set"
+  ],
+  "description": "Black Argentina 19 adidas hoodie with matching pants.",
+  "image": "images/c-016.jpg"
  }
 ]
