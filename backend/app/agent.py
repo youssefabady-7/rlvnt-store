@@ -73,12 +73,12 @@ def providers() -> list[dict]:
     out = []
     if OPENROUTER_API_KEY:
         out.append({"name": "openrouter", "url": OPENROUTER_URL, "key": OPENROUTER_API_KEY, "models": [MODEL, *FALLBACK_MODELS]})
-    if config.GEMINI_API_KEY:
-        out.append({"name": "gemini", "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-                    "key": config.GEMINI_API_KEY, "models": [m for m in os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite").split(",") if m]})
     if config.GROQ_API_KEY:
         out.append({"name": "groq", "url": "https://api.groq.com/openai/v1/chat/completions",
                     "key": config.GROQ_API_KEY, "models": [m for m in os.getenv("GROQ_MODEL", "openai/gpt-oss-120b,openai/gpt-oss-20b").split(",") if m]})
+    if config.GEMINI_API_KEY:
+        out.append({"name": "gemini", "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+                    "key": config.GEMINI_API_KEY, "models": [m for m in os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite").split(",") if m]})
     return out
 
 
@@ -126,8 +126,8 @@ async def _complete(client: httpx.AsyncClient, messages: list) -> dict:
 async def chat(history: list[dict], cart: dict, transport=None, viewing: str = "") -> dict:
     if not providers():
         raise RuntimeError("no LLM provider key is set")
-    messages = [{"role": "system", "content": system_prompt(cart, viewing)}] + history[-12:]
     last_user = next((m["content"] for m in reversed(history) if m.get("role") == "user"), "")
+    messages = [{"role": "system", "content": system_prompt(cart, viewing, last_user)}] + history[-12:]
     retried = False
     shown: list = []
     async with httpx.AsyncClient(timeout=45, transport=transport) as client:

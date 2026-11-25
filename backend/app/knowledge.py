@@ -45,7 +45,7 @@ website, verified social channels and approved retail partners.""",
 }
 
 UNCONFIRMED = """Contact: support email youssefabady6@gmail.com, phone/WhatsApp +201270383409.
-Not confirmed yet: processing/dispatch time, order cancellation window, refund method and timeline, exchange fee, free-shipping threshold (none announced),
+Not confirmed yet: shipping outside Egypt or to specific cities (never say we do or do not ship somewhere; say it is not confirmed and point to support), processing/dispatch time, order cancellation window, refund method and timeline, exchange fee, free-shipping threshold (none announced),
 social handles, business address, support hours and response time, exact bottoms measurements.
 Payment is cash on delivery only (no cards, no online payment)."""
 
@@ -100,6 +100,13 @@ def live_context(cart: dict, viewing: str = "") -> str:
     return out
 
 
-def system_prompt(cart: dict | None = None, viewing: str = "") -> str:
+def language_hint(last_user: str) -> str:
+    import re
+    if re.search(r"[\u0600-\u06ff]", last_user or ""):
+        return "Reply language for this turn: Egyptian Arabic (Masri, Arabic script). Do not use any other script."
+    return "Reply language for this turn: ENGLISH only (the customer wrote in English or Latin letters). Only switch to Egyptian Arabic if the message is clearly Arabizi/Franco (Arabic written in Latin letters like 'ezayak 3ayez hoodie'). Never use non-Latin scripts except Arabic when replying in Arabic."
+
+
+def system_prompt(cart: dict | None = None, viewing: str = "", last_user: str = "") -> str:
     pol = "\n\n".join(f"[{k}]\n{v}" for k, v in POLICIES.items())
-    return SYSTEM.format(brand=BRAND, policies=pol, unconfirmed=UNCONFIRMED, catalog=catalog_text()) + "\n" + live_context(cart or {}, viewing)
+    return SYSTEM.format(brand=BRAND, policies=pol, unconfirmed=UNCONFIRMED, catalog=catalog_text()) + "\n" + live_context(cart or {}, viewing) + "\n" + language_hint(last_user)

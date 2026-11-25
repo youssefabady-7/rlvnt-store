@@ -26,9 +26,14 @@ def _norm(n: str) -> str:
     return re.sub(r"[^a-z0-9\u0600-\u06ff ]", "", n.lower()).strip()
 
 
+_STRAY = re.compile(r"[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af\u0400-\u04ff\u0e00-\u0e7f]")
+
+
 def check(reply: str) -> list[str]:
     """Return a list of problems found in the reply (empty means it passes)."""
     problems = []
+    if _STRAY.search(reply):
+        problems.append("stray characters from another script")
     t = reply.translate(_AR)
     ok = allowed_amounts()
     for m in _MONEY.finditer(t):

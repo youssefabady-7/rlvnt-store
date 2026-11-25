@@ -66,3 +66,11 @@ def test_temperature_is_low(monkeypatch):
 def test_guard_negation_and_typo():
     assert guard.check("Sorry, the code RLVNT30 isn't valid and there is no 30% off.") == []
     assert guard.check("It costs 800 EPG") != []
+
+
+def test_language_hint_and_stray_script_and_shipping_unconfirmed():
+    p = system_prompt({}, "", "Do you have hoodies?")
+    assert "ENGLISH only" in p
+    assert "Egyptian Arabic (Masri" in system_prompt({}, "", "عايز هودي")
+    assert "shipping outside Egypt" in p
+    assert guard.check("الدロップ الحالي") != []
