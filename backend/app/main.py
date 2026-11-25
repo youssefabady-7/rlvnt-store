@@ -40,7 +40,7 @@ class ChatIn(BaseModel):
 @app.get("/health")
 def health():
     n = len(catalog.load_products())
-    checks = {"products": n > 0, "order_email": bool(RESEND_API_KEY), "assistant": bool(OPENROUTER_API_KEY)}
+    checks = {"products": n > 0, "order_email_key_set": bool(RESEND_API_KEY), "order_store_configured": orders.kv_config() is not None, "assistant": bool(OPENROUTER_API_KEY)}
     return {"ok": checks["products"], "status": "ok" if all(checks.values()) else "degraded", "products": n, "checks": checks}
 
 

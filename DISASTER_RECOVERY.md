@@ -37,7 +37,7 @@ Owner: Youssef Abady (youssefabady6@gmail.com, +201270383409). Last reviewed: 20
 ## 4. Technical resilience features (implemented)
 
 1. **Order fallback.** `POST /api/order` tries the email twice. If both fail, the response has `confirmed: false` and the site says the order is NOT confirmed until the customer sends the prefilled WhatsApp message. Logs keep only order number, items, total and masked phone (no name, address or notes). Vercel runtime logs are short-lived (about 1 hour on Hobby), so they are a hint, not a record.
-2. **Health endpoint.** `GET /api/health` (or `/health`) reports `ok` or `degraded`. The order email check only confirms the API key is configured. It does NOT prove emails are delivered; send a test order to verify.
+2. **Health endpoint.** `GET /api/health` (or `/health`) reports `ok` or `degraded`. The order email check only confirms the API key is configured. It does NOT prove emails are delivered (`order_email_key_set` is only the key; `order_store_configured` only means KV env vars exist); send a test order to verify.
 3. **Graceful errors and offline states.** The catalog is cached in the browser (stale-while-revalidate), automatic retries with a Retry button, an offline banner, and the cart is kept in local storage so nothing is lost on a refresh or disconnect.
 4. **Catalog backup and restore.** `python scripts/catalog_backup.py backup | verify | list | restore`. Backups are validated (JSON, required fields, unique ids, image files exist). Restore saves the current file first, so it can be undone.
 5. **Automated tests.** `cd backend && pytest` covers pricing, the assistant, order fallback, health and catalog verification.
@@ -47,7 +47,7 @@ Owner: Youssef Abady (youssefabady6@gmail.com, +201270383409). Last reviewed: 20
 Every order is written to a private Upstash Redis store (key `order:<number>`, 90 day expiry) BEFORE the email is sent. No public read: the store is only reachable with the REST token held in Vercel env vars, and the site has no endpoint that lists orders. It holds the order text needed for delivery (items, total, name, phone, address, notes), nothing else.
 - Email fails but the KV write worked: the customer sees a normal confirmation, the owner reads the order in KV (Vercel dashboard > Storage > the store > Open in Upstash > Data Browser, search `order:`). Logs only get `ORDER_STORED_EMAIL_FAILED` with order number and total.
 - Email fails and KV is missing or failing: the WhatsApp fallback applies (order NOT confirmed until the customer sends it).
-- Status: the code is deployed. KV is active only when the store is connected to the project (env `KV_REST_API_URL` and `KV_REST_API_TOKEN`). Until then only the WhatsApp fallback protects orders.
+- Status: ACTIVE since 2026-11-25. Store `rlvnt-orders` (Upstash for Redis, Free plan, auto-upgrade off, eviction off) is connected to the project. Verified: write, read and expiry work; a request without the token gets 401; the read-only token cannot write. If the env vars are ever removed, the WhatsApp fallback applies automatically.
 - Free plan limits apply (Upstash free tier). Auto-upgrade must stay off so there is no charge.
 
 ## 5. Procedures
