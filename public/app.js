@@ -1,53 +1,125 @@
 const API = window.RLVNT_API;
-let cart = JSON.parse(localStorage.getItem("cart") || "{}");
-let products = [], history = [];
 const $ = (id) => document.getElementById(id);
-const el = (tag, text, cls) => { const e = document.createElement(tag); e.textContent = text; if (cls) e.className = cls; return e; };
+const el = (tag, text, cls) => { const e = document.createElement(tag); if (text != null) e.textContent = text; if (cls) e.className = cls; return e; };
+let cart = JSON.parse(localStorage.getItem("rl_cart") || "{}");
+let products = [], filter = "all";
+let history = JSON.parse(sessionStorage.getItem("rl_chat") || "[]");
 
-function saveCart(c) { cart = c; localStorage.setItem("cart", JSON.stringify(cart)); renderCart(); }
-
-function renderCart() {
-  const box = $("cartItems"); box.replaceChildren();
-  let total = 0, count = 0;
-  for (const [id, q] of Object.entries(cart)) {
-    const p = products.find((x) => x.id === id); if (!p) continue;
-    total += q * p.price; count += q;
-    const row = el("div", "", "row");
-    row.append(el("span", `${p.name} x${q}`));
-    const b = el("button", "Remove");
-    b.onclick = () => { const c = { ...cart }; if (c[id] > 1) c[id]--; else delete c[id]; saveCart(c); };
-    row.append(b); box.append(row);
-  }
-  $("total").textContent = total; $("count").textContent = count;
+/* ---------- helpers ---------- */
+function toast(t) { const x = $("toast"); x.textContent = t; x.classList.add("on"); clearTimeout(toast.t); toast.t = setTimeout(() => x.classList.remove("on"), 2200); }
+function saveCart(c, opts = {}) {
+  const before = Object.values(cart).reduce((a, b) => a + b, 0);
+  cart = c; localStorage.setItem("rl_cart", JSON.stringify(cart)); renderCart();
+  const after = Object.values(cart).reduce((a, b) => a + b, 0);
+  if (after > before) { const b = $("cartBtn"); b.classList.remove("bump"); void b.offsetWidth; b.classList.add("bump"); }
 }
+function fly(imgEl) {
+  if (!imgEl || !imgEl.getBoundingClientRect) return;
+  const r = imgEl.getBoundingClientRect(), t = $("cartBtn").getBoundingClientRect();
+  const c = imgEl.cloneNode(); Object.assign(c.style, { position: "fixed", left: r.left + "px", top: r.top + "px", width: r.width + "px", height: r.height + "px", objectFit: "contain", zIndex: 200, pointerEvents: "none", transition: "none" });
+  document.body.append(c);
+  c.animate([{ transform: "none", opacity: 1 }, { transform: `translate(${t.left - r.left}px,${t.top - r.top}px) scale(.08) rotate(25deg)`, opacity: .2 }],
+    { duration: 750, easing: "cubic-bezier(.5,0,.8,.4)" }).onfinish = () => c.remove();
+}
+function addItem(p, imgEl) { saveCart({ ...cart, [p.id]: Math.min((cart[p.id] || 0) + 1, 20) }); fly(imgEl); toast(`${p.name} added`); }
 
+/* ---------- hero ---------- */
+function splitHeadline() {
+  const h = $("headline"); const lines = ["WEAR WHAT'S", "RELEVANT"]; h.replaceChildren();
+  let i = 0;
+  lines.forEach((line, li) => {
+    [...line].forEach((ch) => { const s = el("span", ch === " " ? "\u00a0" : ch, "ch" + (li === 1 ? " rl" : "")); s.style.animationDelay = (i++ * 35) + "ms"; h.append(s); });
+    if (li === 0) h.append(document.createElement("br"));
+  });
+}
+function renderFloaters() {
+  const pick = ["rl-003", "rl-013", "rl-011", "rl-016"].map((id) => products.find((p) => p.id === id)).filter(Boolean);
+  const box = $("floaters"); box.replaceChildren();
+  pick.forEach((p, i) => { const d = el("div", null, "fl fl" + (i + 1)); const im = document.createElement("img"); im.src = p.image; im.alt = ""; d.append(im); d.dataset.depth = 12 + i * 6; box.append(d); });
+}
+addEventListener("mousemove", (e) => {
+  const x = e.clientX / innerWidth - .5, y = e.clientY / innerHeight - .5;
+  document.querySelectorAll(".fl").forEach((f) => { const d = +f.dataset.depth; f.style.translate = `${-x * d * 3}px ${-y * d * 3}px`; });
+});
+
+/* ---------- shop ---------- */
+function renderFilters() {
+  const cats = ["all", ...new Set(products.map((p) => p.category))]; const box = $("filters"); box.replaceChildren();
+  cats.forEach((c) => { const b = el("button", c, c === filter ? "on" : ""); b.onclick = () => { filter = c; renderFilters(); renderGrid(); }; box.append(b); });
+}
 function renderGrid() {
   const g = $("grid"); g.replaceChildren();
-  for (const p of products) {
-    const c = el("div", "", "card");
-    const img = document.createElement("img"); img.src = p.image; img.alt = p.name;
-    const b = el("button", "Add to cart");
-    b.onclick = () => saveCart({ ...cart, [p.id]: (cart[p.id] || 0) + 1 });
-    c.append(img, el("h4", p.name), el("p", `${p.price} EGP`), b); g.append(c);
+  products.filter((p) => filter === "all" || p.category === filter).forEach((p, i) => {
+    const c = el("article", null, "card"); c.style.transitionDelay = (i % 5) * 70 + "ms";
+    const pic = el("div", null, "pic"); const img = document.createElement("img"); img.src = p.image; img.alt = p.name; img.loading = "lazy"; pic.append(img);
+    pic.addEventListener("mousemove", (e) => { const r = pic.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5; img.style.transform = `scale(1.1) rotateY(${x * 14}deg) rotateX(${-y * 14}deg)`; });
+    pic.addEventListener("mouseleave", () => { img.style.transform = ""; });
+    const meta = el("div", null, "meta"); meta.append(el("h4", p.name), el("p", `${p.price} EGP`));
+    const add = el("button", "Add to cart", "add"); add.onclick = () => addItem(p, img);
+    c.append(el("span", p.category, "tag"), pic, meta, add); g.append(c); io.observe(c);
+  });
+}
+const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: .12 });
+document.querySelectorAll(".reveal").forEach((n) => io.observe(n));
+
+/* ---------- cart ---------- */
+function renderCart() {
+  const box = $("cartItems"); box.replaceChildren(); let total = 0, count = 0;
+  for (const [id, q] of Object.entries(cart)) {
+    const p = products.find((x) => x.id === id); if (!p) continue; total += q * p.price; count += q;
+    const row = el("div", null, "line"); const im = document.createElement("img"); im.src = p.image; im.alt = p.name;
+    const info = el("div"); info.append(el("b", p.name), el("small", `${p.price} EGP`));
+    const qty = el("div", null, "qty"); const m = el("button", "−"), pl = el("button", "+");
+    m.onclick = () => { const c = { ...cart }; if (c[id] > 1) c[id]--; else delete c[id]; saveCart(c); };
+    pl.onclick = () => saveCart({ ...cart, [id]: Math.min(q + 1, 20) });
+    qty.append(m, el("span", String(q)), pl); info.append(qty);
+    row.append(im, info, el("b", `${q * p.price}`)); box.append(row);
   }
+  if (!count) box.append(el("p", "Your cart is empty.", "empty"));
+  $("total").textContent = total; $("count").textContent = count;
+}
+const openCart = (on) => { $("cart").classList.toggle("on", on); $("scrim").classList.toggle("on", on); };
+$("cartBtn").onclick = () => openCart(true); $("closeCart").onclick = () => openCart(false); $("scrim").onclick = () => openCart(false);
+
+/* ---------- chat ---------- */
+const CHIPS = ["Show me hoodies", "What's your return policy?", "How do I wash the prints?", "عايز حاجة من ريال مدريد", "الشحن بكام؟"];
+function rich(text, parent) { text.split(/(\*\*[^*]+\*\*)/g).forEach((s) => { if (s.startsWith("**") && s.endsWith("**")) parent.append(el("strong", s.slice(2, -2))); else parent.append(document.createTextNode(s)); }); }
+function bubble(role, text) { const m = el("div", null, "msg " + (role === "user" ? "me" : "bot")); m.dir = "auto"; rich(text, m); $("log").append(m); scroll(); return m; }
+function scroll() { const l = $("log"); l.scrollTop = l.scrollHeight; }
+function productCards(list) {
+  if (!list || !list.length) return; const w = el("div", null, "pcards");
+  list.slice(0, 5).forEach((p) => { const c = el("div", null, "pc"); const im = document.createElement("img"); im.src = p.image; im.alt = p.name; const d = el("div", p.name); const b = el("button", "Add"); b.onclick = () => addItem(p, im); c.append(im, d, b); w.append(c); });
+  $("log").append(w); scroll();
+}
+function openChat(on = true) { $("chat").classList.toggle("on", on); $("chatFab").style.display = on ? "none" : ""; if (on) $("input").focus(); }
+$("chatFab").onclick = () => openChat(true); $("chatClose").onclick = () => openChat(false);
+$("askBtn").onclick = () => openChat(true); $("askFromCart").onclick = () => { openCart(false); openChat(true); };
+function renderChips() { const b = $("chips"); b.replaceChildren(); CHIPS.forEach((t) => { const x = el("button", t); x.dir = "auto"; x.onclick = () => send(t); b.append(x); }); }
+async function send(text) {
+  text = (text || "").trim(); if (!text) return; $("chips").replaceChildren();
+  bubble("user", text); history.push({ role: "user", content: text }); $("input").value = "";
+  const t = el("div", null, "msg bot typing"); t.append(el("i"), el("i"), el("i")); $("log").append(t); scroll();
+  try {
+    const r = await fetch(API + "/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: history.slice(-14), cart }) });
+    const d = await r.json().catch(() => ({})); t.remove();
+    if (!r.ok) { bubble("assistant", d.detail || "Something went wrong. حاول تاني بعد شوية."); history.pop(); return; }
+    bubble("assistant", d.reply || "…"); history.push({ role: "assistant", content: d.reply || "" });
+    productCards(d.products); saveCart(d.cart);
+  } catch { t.remove(); bubble("assistant", "Connection problem. Please try again. في مشكلة في الاتصال، حاول تاني."); history.pop(); }
+  sessionStorage.setItem("rl_chat", JSON.stringify(history.slice(-30)));
+}
+$("form").onsubmit = (e) => { e.preventDefault(); send($("input").value); };
+function restoreChat() {
+  if (history.length) history.forEach((m) => bubble(m.role, m.content));
+  else { bubble("assistant", "Hey, I'm the RLVNT assistant. Ask about pieces, sizing, shipping, returns or tell me what to add to your cart.\nأهلاً! اسألني عن أي قطعة أو الشحن أو الاسترجاع، أو قولي أضيف إيه للسلة."); renderChips(); }
 }
 
-function log(text, cls) { const m = el("div", text, "m " + cls); $("log").append(m); $("log").scrollTop = 1e9; }
+/* ---------- page chrome ---------- */
+addEventListener("scroll", () => {
+  $("nav").classList.toggle("solid", scrollY > 40);
+  $("progress").style.width = (scrollY / (document.documentElement.scrollHeight - innerHeight) * 100) + "%";
+}, { passive: true });
 
-$("cartBtn").onclick = () => $("cart").classList.toggle("hidden");
-$("form").onsubmit = async (e) => {
-  e.preventDefault();
-  const text = $("input").value.trim(); if (!text) return;
-  $("input").value = ""; log(text, "u"); history.push({ role: "user", content: text });
-  try {
-    const r = await fetch(API + "/api/chat", { method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: history, cart }) });
-    if (!r.ok) throw new Error((await r.json()).detail || r.status);
-    const d = await r.json();
-    history.push({ role: "assistant", content: d.reply }); log(d.reply, "a"); saveCart(d.cart);
-  } catch (err) { log("Something went wrong: " + err.message, "a"); }
-};
-
-fetch(API + "/api/products").then((r) => r.json()).then((d) => { products = d.products; renderGrid(); renderCart(); })
-  .catch(() => log("Could not reach the server.", "a"));
-log("Hi! Ask me for recommendations or tell me what to add to your cart.", "a");
+splitHeadline(); restoreChat();
+fetch(API + "/api/products").then((r) => r.json()).then((d) => { products = d.products; renderFloaters(); renderFilters(); renderGrid(); renderCart(); })
+  .catch(() => toast("Could not load products. Please refresh."));

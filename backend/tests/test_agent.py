@@ -27,3 +27,17 @@ def test_agent_tool_loop(monkeypatch):
     transport = httpx.MockTransport(lambda req: httpx.Response(200, json=next(replies)))
     out = asyncio.run(agent.chat([{"role": "user", "content": "add the tee"}], {}, transport))
     assert out["cart"] == {"rl-002": 1} and out["reply"] == "Added the tee."
+
+
+def test_prompt_has_policies_and_unconfirmed():
+    from app.knowledge import system_prompt
+    p = system_prompt()
+    assert "unworn" in p and "Not confirmed yet" in p and "Egyptian Arabic" in p
+
+
+def test_set_quantity():
+    from app import agent
+    cart, out = agent.run_tool("set_quantity", {"product_id": "rl-001", "quantity": 3}, {"rl-001": 1}, [])
+    assert cart == {"rl-001": 3}
+    cart, out = agent.run_tool("set_quantity", {"product_id": "rl-001", "quantity": 0}, cart, [])
+    assert cart == {}

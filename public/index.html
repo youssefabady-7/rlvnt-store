@@ -1,17 +1,64 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RLVNT</title><link rel="stylesheet" href="style.css"></head>
+<title>RLVNT | Streetwear</title>
+<meta name="description" content="RLVNT. Graphic streetwear built on football, cinema and street culture. Every piece 800 EGP.">
+<link rel="icon" href="images/logo.png">
+<link rel="stylesheet" href="style.css"></head>
 <body>
-<header><a href="/"><img src="images/logo.png" alt="RLVNT"></a><button id="cartBtn">Cart (<span id="count">0</span>)</button></header>
-<section class="hero"><h2>Wear what's relevant.</h2><p>Every piece. 800 EGP.</p></section>
-<main><div id="grid" class="grid"></div></main>
-<aside id="cart" class="panel hidden"><h3>Your cart</h3><div id="cartItems"></div>
-<p><strong>Total: <span id="total">0</span> EGP</strong></p></aside>
-<div id="chat" class="chat">
-  <div id="log"></div>
-  <form id="form"><input id="input" placeholder="Ask for a hoodie, add to cart..." autocomplete="off" maxlength="500"><button>Send</button></form>
-</div>
+<div class="progress" id="progress"></div>
+<header id="nav">
+  <a class="brand" href="#top"><img src="images/logo.png" alt="RLVNT"></a>
+  <nav><a href="#shop">Shop</a><a href="#story">Story</a><a href="policies.html">Policies</a></nav>
+  <button id="cartBtn" class="cartbtn" aria-label="Open cart">Cart <span id="count">0</span></button>
+</header>
+
+<section class="hero" id="top">
+  <div class="hero-bg"></div>
+  <div class="floaters" id="floaters" aria-hidden="true"></div>
+  <div class="hero-copy">
+    <p class="eyebrow reveal">Winter Collection</p>
+    <h1 id="headline" aria-label="Wear what's relevant">WEAR WHAT'S<br>RELEVANT</h1>
+    <p class="sub reveal">Graphic pieces from football, film and the street. Every piece 800 EGP.</p>
+    <div class="cta reveal"><a class="btn" href="#shop">Shop the drop</a><button class="btn ghost" id="askBtn">Ask the assistant</button></div>
+  </div>
+  <div class="scroll-hint">Scroll</div>
+</section>
+
+<div class="marquee" aria-hidden="true"><div class="track"><span>RLVNT STREETWEAR</span><span>800 EGP EVERY PIECE</span><span>WINTER COLLECTION</span><span>OVERSIZED FITS</span><span>RLVNT STREETWEAR</span><span>800 EGP EVERY PIECE</span><span>WINTER COLLECTION</span><span>OVERSIZED FITS</span></div></div>
+
+<section class="shop" id="shop">
+  <div class="shop-head reveal"><h2>The Drop</h2>
+    <div class="filters" id="filters"></div></div>
+  <div id="grid" class="grid"></div>
+</section>
+
+<section class="story" id="story">
+  <div class="story-in reveal">
+    <h2>Culture on cotton.</h2>
+    <p>RLVNT pulls from football heritage, cinema, music and urban culture. Heavyweight fabrics, clean stitching and prints built to last. Oversized on purpose.</p>
+    <div class="pillars"><div><b>01</b>Cultural relevance</div><div><b>02</b>Visual impact</div><div><b>03</b>Everyday quality</div><div><b>04</b>Transparent service</div></div>
+  </div>
+</section>
+
+<footer><img src="images/logo.png" alt="RLVNT"><div><a href="policies.html">Ordering, shipping, returns, care and privacy</a><p>Prices in EGP. Checkout and support details are being finalized.</p></div></footer>
+
+<div class="scrim" id="scrim"></div>
+<aside id="cart" class="drawer" aria-label="Cart">
+  <div class="drawer-head"><h3>Your cart</h3><button id="closeCart" class="x" aria-label="Close">×</button></div>
+  <div id="cartItems" class="cart-items"></div>
+  <div class="drawer-foot"><div class="total"><span>Total</span><b><span id="total">0</span> EGP</b></div>
+    <p class="note">Online checkout is being finalized. Your selection is saved here, and the assistant can help with your order questions.</p>
+    <button class="btn full" id="askFromCart">Ask the assistant</button></div>
+</aside>
+
+<button id="chatFab" class="fab" aria-label="Open assistant"><span>Ask RLVNT</span></button>
+<section id="chat" class="chat" aria-label="RLVNT assistant">
+  <div class="chat-head"><div><b>RLVNT Assistant</b><small>English · عربي</small></div><button id="chatClose" class="x" aria-label="Close">×</button></div>
+  <div id="log" class="log"></div>
+  <div id="chips" class="chips"></div>
+  <form id="form"><input id="input" placeholder="Message / اكتب رسالتك" autocomplete="off" maxlength="500" dir="auto"><button aria-label="Send">➤</button></form>
+</section>
+<div id="toast" class="toast"></div>
 <script src="config.js"></script><script src="app.js"></script>
-<footer>RLVNT Streetwear. <a href="policies.html">Policies, shipping, returns and care</a></footer>
 </body></html>
