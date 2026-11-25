@@ -11,6 +11,7 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-backend-8F1D1D?style=flat-square&logo=fastapi&logoColor=white)
 ![Vercel](https://img.shields.io/badge/deploy-Vercel-111111?style=flat-square&logo=vercel&logoColor=white)
 ![Upstash](https://img.shields.io/badge/data-Upstash%20Redis-8F1D1D?style=flat-square&logo=redis&logoColor=white)
+[![License: MIT](https://img.shields.io/badge/license-MIT-2e7d32?style=flat-square)](LICENSE)
 ![Tests](https://img.shields.io/badge/tests-39%20passing-2e7d32?style=flat-square)
 ![Frontend](https://img.shields.io/badge/frontend-vanilla%20JS-111111?style=flat-square&logo=javascript&logoColor=white)
 
@@ -22,7 +23,7 @@
 
 ## Contents
 
-[Features](#features) · [Screenshots](#screenshots) · [Architecture](#architecture) · [Flows](#flows) · [Data model](#data-model) · [Tech stack](#tech-stack) · [Project structure](#project-structure) · [API](#api) · [Run locally](#run-locally) · [Environment variables](#environment-variables) · [Security](#security) · [Disaster recovery](#disaster-recovery) · [Roadmap](#roadmap)
+[Features](#features) · [Screenshots](#screenshots) · [Architecture](#architecture) · [Flows](#flows) · [Data model](#data-model) · [Tech stack](#tech-stack) · [Project structure](#project-structure) · [API](#api) · [Run locally](#run-locally) · [Environment variables](#environment-variables) · [Security](#security) · [Disaster recovery](#disaster-recovery) · [Roadmap](#roadmap) · [License](#license) · [Author](#author-and-credits)
 
 ---
 
@@ -349,8 +350,17 @@ Full plan: **[DISASTER_RECOVERY.md](DISASTER_RECOVERY.md)**.
 - [ ] Per-size stock counts
 - [ ] Paid LLM credits for higher chat limits
 
-## Credits
+## License
 
-Brand and products: RLVNT. Rebuilt from the earlier Brand-mind2 project with a working LLM agent, a live admin and a documented recovery plan.
+The source code is released under the [MIT License](LICENSE), copyright (c) 2026 Youssef Abady.
 
-&copy; RLVNT. All rights reserved.
+> **Not covered by MIT:** the RLVNT name, logo and brand artwork, and the product photos in `public/images/` and `docs/screenshots/`. They belong to their respective owners and are included only to show the store. Do not reuse them without permission.
+
+## Author and credits
+
+**Youssef Abady**
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-youssef--abady-0A66C2?style=flat-square&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/youssef-abady-8854ys/)
+[![Portfolio](https://img.shields.io/badge/Portfolio-streamlit.app-8F1D1D?style=flat-square)](https://youssefabady8854.streamlit.app/)
+
+Rebuilt from the earlier Brand-mind2 project with a working LLM agent, a live admin and a documented recovery plan.
