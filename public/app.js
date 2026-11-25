@@ -51,16 +51,43 @@ function renderFilters() {
 }
 function renderGrid() {
   const g = $("grid"); g.replaceChildren();
-  products.filter((p) => filter === "all" || p.category === filter).forEach((p, i) => {
-    const c = el("article", null, "card"); c.style.transitionDelay = (i % 5) * 70 + "ms";
+  const list = products.filter((p) => filter === "all" || p.category === filter);
+  list.forEach((p, i) => {
+    const c = el("article", null, "card"); c.style.setProperty("--d", (i % 6) * 90 + "ms");
     const pic = el("div", null, "pic"); const img = document.createElement("img"); img.src = p.image; img.alt = p.name; img.loading = "lazy"; pic.append(img);
-    pic.addEventListener("mousemove", (e) => { const r = pic.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5; img.style.transform = `scale(1.1) rotateY(${x * 14}deg) rotateX(${-y * 14}deg)`; });
-    pic.addEventListener("mouseleave", () => { img.style.transform = ""; });
-    const meta = el("div", null, "meta"); meta.append(el("h4", p.name), el("p", `${p.price} EGP`));
-    const add = el("button", "Add to cart", "add"); add.onclick = () => addItem(p, img);
-    c.append(el("span", p.category, "tag"), pic, meta, add); g.append(c); io.observe(c);
+    pic.append(el("span", "Quick view", "qvpill"), el("i", null, "shine"));
+    const mv = (e) => { const r = c.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+      c.style.setProperty("--mx", x * 100 + "%"); c.style.setProperty("--my", y * 100 + "%");
+      img.style.transform = `scale(1.08) rotateY(${(x - .5) * 16}deg) rotateX(${(.5 - y) * 16}deg) translateZ(30px)`; };
+    c.addEventListener("mousemove", mv);
+    c.addEventListener("mouseleave", () => { img.style.transform = ""; });
+    pic.onclick = () => openQV(p);
+    const meta = el("div", null, "meta");
+    const top = el("div", null, "mtop"); top.append(el("span", String(i + 1).padStart(2, "0"), "idx"), el("span", p.category, "cat"));
+    meta.append(top, el("h4", p.name));
+    const row = el("div", null, "mrow"); row.append(el("span", `${p.price} EGP`, "pr"));
+    const add = el("button", "Add +", "add"); add.onclick = (ev) => { ev.stopPropagation(); addItem(p, img); add.classList.add("ok"); setTimeout(() => add.classList.remove("ok"), 900); };
+    row.append(add); meta.append(row);
+    c.append(pic, meta); g.append(c); io.observe(c);
   });
 }
+/* quick view */
+function openQV(p) {
+  const q = $("qv"); const box = $("qvBody"); box.replaceChildren();
+  const left = el("div", null, "qvimg"); const im = document.createElement("img"); im.src = p.image; im.alt = p.name; left.append(im);
+  left.addEventListener("mousemove", (e) => { const r = left.getBoundingClientRect(); im.style.transformOrigin = `${(e.clientX - r.left) / r.width * 100}% ${(e.clientY - r.top) / r.height * 100}%`; im.style.transform = "scale(1.9)"; });
+  left.addEventListener("mouseleave", () => { im.style.transform = ""; });
+  const right = el("div", null, "qvinfo");
+  right.append(el("span", p.category, "cat"), el("h3", p.name), el("p", `${p.price} EGP`, "pr"), el("p", p.description, "desc"));
+  const sz = el("div", null, "pills"); let chosen = sizes[p.id] || "";
+  SIZES.forEach((s) => { const b = el("button", s, "pill" + (s === chosen ? " on" : "")); b.type = "button"; b.onclick = () => { chosen = s; sizes[p.id] = s; localStorage.setItem("rl_sizes", JSON.stringify(sizes)); sz.querySelectorAll(".pill").forEach((x) => x.classList.toggle("on", x.textContent === s)); }; sz.append(b); });
+  const add = el("button", "Add to cart", "btn full"); add.onclick = () => { addItem(p, im); renderCart(); setTimeout(() => closeQV(), 350); };
+  right.append(el("small", "Size (all available)"), sz, add, el("p", "Cash on delivery · 3 to 5 days · 100 EGP shipping", "note"));
+  box.append(left, right); q.classList.add("on"); document.body.style.overflow = "hidden";
+}
+function closeQV() { $("qv").classList.remove("on"); document.body.style.overflow = ""; }
+$("qvClose").onclick = closeQV; $("qv").addEventListener("click", (e) => { if (e.target.id === "qv") closeQV(); });
+addEventListener("keydown", (e) => { if (e.key === "Escape") { closeQV(); openCart(false); } });
 const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: .12 });
 document.querySelectorAll(".reveal").forEach((n) => io.observe(n));
 
@@ -126,7 +153,7 @@ function productCards(list) {
 }
 function openChat(on = true) { $("chat").classList.toggle("on", on); $("chatFab").style.display = on ? "none" : ""; if (on) $("input").focus(); }
 $("chatFab").onclick = () => openChat(true); $("chatClose").onclick = () => openChat(false);
-$("askBtn").onclick = () => openChat(true); $("askFromCart").onclick = () => { openCart(false); openChat(true); };
+$("askBtn").onclick = () => openChat(true);
 function renderChips() { const b = $("chips"); b.replaceChildren(); CHIPS.forEach((t) => { const x = el("button", t); x.dir = "auto"; x.onclick = () => send(t); b.append(x); }); }
 async function send(text) {
   text = (text || "").trim(); if (!text) return; $("chips").replaceChildren();
