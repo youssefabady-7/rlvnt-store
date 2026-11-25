@@ -85,7 +85,13 @@ async def place_order(body: orders.OrderIn, request: Request):
         raise HTTPException(status_code=422, detail=str(e))
     num = orders.order_number()
     subject, text, html_ = orders.render(body, num, pr)
+    stored = await orders.persist(num, text, pr)  # durable record first, before email
     sent = await orders.deliver(subject, text, html_)
+    if not sent and stored:
+        # Order is safe in KV; the owner reads it there. Customer gets a normal confirmation.
+        log.error("ORDER_STORED_EMAIL_FAILED %s", json.dumps({"order": num, "total": pr["total"]}))
+        q.append(now)
+        return {"ok": True, "confirmed": True, "order_number": num, "total": pr["total"], "shipping": pr["shipping"]}
     if not sent:
         # Fallback: the order is NOT confirmed. Log a minimal trail (no name, address or notes) and make the
         # customer send the prefilled WhatsApp message. Vercel runtime logs are short-lived, so this is a hint only.

@@ -94,3 +94,31 @@ async def deliver(subject: str, text: str, body_html: str, transport=None, retri
             if attempt + 1 < retries:
                 await asyncio.sleep(0.5)
     return False
+
+
+ORDER_TTL_SECONDS = 90 * 24 * 3600
+
+
+def kv_config():
+    import os
+    url = os.getenv("KV_REST_API_URL") or os.getenv("UPSTASH_REDIS_REST_URL") or ""
+    tok = os.getenv("KV_REST_API_TOKEN") or os.getenv("UPSTASH_REDIS_REST_TOKEN") or ""
+    return (url.rstrip("/"), tok) if url and tok else None
+
+
+async def persist(num: str, text: str, pr: dict, transport=None) -> bool:
+    """Write the order to Vercel KV (Upstash Redis, private, token-only) BEFORE emailing.
+    Returns False when KV is not configured or the write failed. Records expire after 90 days."""
+    cfg = kv_config()
+    if not cfg:
+        return False
+    import json as _json
+    url, tok = cfg
+    record = _json.dumps({"order": num, "total": pr["total"], "text": text, "ts": int(time.time())}, ensure_ascii=False)
+    try:
+        async with httpx.AsyncClient(timeout=8, transport=transport) as c:
+            r = await c.post(url, headers={"Authorization": f"Bearer {tok}"},
+                             json=["SET", f"order:{num}", record, "EX", str(ORDER_TTL_SECONDS)])
+        return r.status_code < 300 and "error" not in r.json()
+    except Exception:
+        return False

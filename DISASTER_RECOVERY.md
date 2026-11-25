@@ -6,7 +6,7 @@ Owner: Youssef Abady (youssefabady6@gmail.com, +201270383409). Last reviewed: 20
 ## 1. Goals
 
 - **RTO** (max time to get the store back): 1 hour for the site and API, 15 minutes for taking orders by an alternative channel (WhatsApp).
-- **RPO** (max data we can lose): 0 for confirmed orders (an order is confirmed only after the email is accepted by Resend, or after the customer sends it on WhatsApp). An order whose email failed and whose customer never sent the WhatsApp message can be lost; there is no durable server-side copy (see 4.1). Catalog: last Git commit (at most 1 day of edits).
+- **RPO** (max data we can lose): 0 for confirmed orders: an order is confirmed only after it is saved to the KV store or accepted by the email provider, or after the customer sends it on WhatsApp. If both KV and email fail, the order is not confirmed and depends on the customer's WhatsApp message (see 4.1). Catalog: last Git commit (at most 1 day of edits).
 - Customers can always place an order, even when a part of the system is down.
 
 ## 2. What we protect (assets)
@@ -23,7 +23,7 @@ Owner: Youssef Abady (youssefabady6@gmail.com, +201270383409). Last reviewed: 20
 
 | # | Risk | Likelihood | Impact | Built-in protection | Recovery action | RTO | RPO |
 |---|---|---|---|---|---|---|---|
-| 1 | Order email provider (Resend) fails or key expires | Medium | High (orders not seen) | Retry once, then fallback: customer is told the order is NOT confirmed and must send the prefilled WhatsApp message; a minimal `ORDER_FALLBACK` log line (order number, items, total, masked phone) is a hint only | Check WhatsApp chat (primary record), fix/rotate key, redeploy | 15 min | 0 |
+| 1 | Order email provider (Resend) fails or key expires | Medium | High (orders not seen) | Retry once, then fallback: customer is told the order is NOT confirmed and must send the prefilled WhatsApp message; a minimal `ORDER_FALLBACK` log line (order number, items, total, masked phone) is a hint only | Read orders from KV (4.1) and the WhatsApp chat, fix/rotate key, redeploy | 15 min | 0 |
 | 2 | Assistant (OpenRouter free model) is down or rate limited | High | Low | Model fallback list, friendly error, shop and checkout keep working without chat | Change `OPENROUTER_MODEL`/fallbacks env var | 10 min | 0 |
 | 3 | Bad deploy breaks the site | Medium | High | Tests (`pytest`), `/health` check, Vercel keeps every previous deployment | Instant rollback (section 5) | 5 min | 0 |
 | 4 | Product data corrupted or deleted | Low | High | `scripts/catalog_backup.py verify/backup/restore`, Git history | Restore latest backup, commit, redeploy | 30 min | 1 day |
@@ -43,8 +43,12 @@ Owner: Youssef Abady (youssefabady6@gmail.com, +201270383409). Last reviewed: 20
 5. **Automated tests.** `cd backend && pytest` covers pricing, the assistant, order fallback, health and catalog verification.
 6. **Safe config.** Price is forced to 800 EGP on the server; secrets only in environment variables.
 
-### 4.1 Known limitation
-There is no durable server-side order store (Vercel functions have no persistent disk, and adding a database or storage vendor was out of scope). Guaranteed: an order shown as "Order placed" was accepted by the email provider. Not guaranteed: an order in fallback mode if the customer does not send the WhatsApp message. Fix later: add a free-tier database (e.g. Vercel KV or Supabase) and write every order before emailing.
+### 4.1 Durable order record (Vercel KV / Upstash Redis, free plan)
+Every order is written to a private Upstash Redis store (key `order:<number>`, 90 day expiry) BEFORE the email is sent. No public read: the store is only reachable with the REST token held in Vercel env vars, and the site has no endpoint that lists orders. It holds the order text needed for delivery (items, total, name, phone, address, notes), nothing else.
+- Email fails but the KV write worked: the customer sees a normal confirmation, the owner reads the order in KV (Vercel dashboard > Storage > the store > Open in Upstash > Data Browser, search `order:`). Logs only get `ORDER_STORED_EMAIL_FAILED` with order number and total.
+- Email fails and KV is missing or failing: the WhatsApp fallback applies (order NOT confirmed until the customer sends it).
+- Status: the code is deployed. KV is active only when the store is connected to the project (env `KV_REST_API_URL` and `KV_REST_API_TOKEN`). Until then only the WhatsApp fallback protects orders.
+- Free plan limits apply (Upstash free tier). Auto-upgrade must stay off so there is no charge.
 
 ## 5. Procedures
 

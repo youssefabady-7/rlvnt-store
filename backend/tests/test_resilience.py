@@ -48,3 +48,44 @@ def test_fallback_log_has_no_pii(monkeypatch, caplog):
     for k in ("name", "address", "notes", "city"):
         assert not ORDER.get(k) or str(ORDER[k]) not in t
     assert str(ORDER["phone"]) not in t and orders.mask_phone("01012345678").endswith("678") and "0101" not in orders.mask_phone("01012345678")
+
+
+def _kv(monkeypatch, status=200, body=None):
+    import httpx
+    monkeypatch.setenv("KV_REST_API_URL", "https://kv.example.test")
+    monkeypatch.setenv("KV_REST_API_TOKEN", "t")
+    seen = []
+
+    def handler(req):
+        seen.append(json.loads(req.content))
+        return httpx.Response(status, json=body or {"result": "OK"})
+    real = httpx.AsyncClient
+    monkeypatch.setattr(orders.httpx, "AsyncClient", lambda **k: real(transport=httpx.MockTransport(handler), **{x: y for x, y in k.items() if x != "transport"}))
+    return seen
+
+
+def test_order_stored_in_kv_before_email_and_confirmed_when_email_fails(monkeypatch):
+    seen = _kv(monkeypatch)
+    async def boom(*a, **k):
+        raise RuntimeError("down")
+    monkeypatch.setattr(orders, "send_email", boom)
+    d = TestClient(main.app).post("/api/order", json=ORDER, headers={"x-forwarded-for": "6.6.6.6"}).json()
+    assert d["confirmed"] is True and "fallback" not in d
+    cmd = seen[0]
+    assert cmd[0] == "SET" and cmd[1] == "order:" + d["order_number"] and "EX" in cmd
+
+
+def test_kv_failure_and_email_failure_is_not_confirmed(monkeypatch):
+    _kv(monkeypatch, status=500, body={"error": "x"})
+    async def boom(*a, **k):
+        raise RuntimeError("down")
+    monkeypatch.setattr(orders, "send_email", boom)
+    d = TestClient(main.app).post("/api/order", json=ORDER, headers={"x-forwarded-for": "5.5.5.5"}).json()
+    assert d["confirmed"] is False and d["fallback"]
+
+
+def test_no_kv_configured_keeps_old_behaviour(monkeypatch):
+    for k in ("KV_REST_API_URL", "KV_REST_API_TOKEN", "UPSTASH_REDIS_REST_URL", "UPSTASH_REDIS_REST_TOKEN"):
+        monkeypatch.delenv(k, raising=False)
+    import asyncio
+    assert asyncio.run(orders.persist("RL-1", "t", {"total": 1})) is False
