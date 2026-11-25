@@ -7,6 +7,7 @@
   lock all logins for the rest of that hour. Failures also cost 1 second.
 - Data lives in Upstash KV: catalog:products, settings, img:<id>, order:<num>, orderstate:<num>.
 """
+import unicodedata
 import base64, binascii, hashlib, hmac, json, os, re, secrets, time
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import Response as RawResponse
