@@ -69,3 +69,23 @@ async def send_email(subject: str, text: str, body_html: str, transport=None) ->
                          json={"from": ORDER_FROM, "to": [ORDER_EMAIL], "subject": subject, "text": text, "html": body_html})
     if r.status_code >= 300:
         raise RuntimeError(f"email provider error {r.status_code}")
+
+
+def whatsapp_link(text: str) -> str:
+    """Prefilled WhatsApp link so the customer can send the order themselves if email delivery fails."""
+    from urllib.parse import quote
+    from .config import SUPPORT_PHONE
+    return f"https://wa.me/{SUPPORT_PHONE.lstrip('+')}?text={quote(text)}"
+
+
+async def deliver(subject: str, text: str, body_html: str, transport=None, retries: int = 2) -> bool:
+    """Try the email provider (retrying once). Return False when every attempt failed."""
+    import asyncio
+    for attempt in range(retries):
+        try:
+            await send_email(subject, text, body_html, transport=transport)
+            return True
+        except Exception:
+            if attempt + 1 < retries:
+                await asyncio.sleep(0.5)
+    return False

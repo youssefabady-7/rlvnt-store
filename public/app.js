@@ -147,9 +147,12 @@ $("orderForm").onsubmit = async (e) => {
     if (!r.ok) { $("orderErr").textContent = typeof d.detail === "string" ? d.detail : "Please check your details and try again."; btn.disabled = false; return; }
     const box = $("orderDone"); box.replaceChildren(el("div", "✓", "check"), el("h3", "Order placed"), el("p", `Order ${d.order_number}`), el("p", `Pay ${d.total} EGP cash on delivery. Delivery in 3 to 5 days. We may confirm by phone or WhatsApp.`),
       el("p", "Questions? youssefabady6@gmail.com · +201270383409"));
+    if (d.fallback && d.whatsapp_url) { box.append(el("p", "Our email is slow right now. Tap below to also send your order on WhatsApp so we get it instantly.")); const w = el("a", "Send order on WhatsApp", "btn full"); w.href = d.whatsapp_url; w.target = "_blank"; w.rel = "noopener"; box.append(w); }
     const ok = el("button", "Continue shopping", "btn full"); ok.onclick = () => { mode(null); openCart(false); }; box.append(ok);
     saveCart({}); sizes = {}; localStorage.removeItem("rl_sizes"); f.reset(); mode("done");
-  } catch { $("orderErr").textContent = "Connection problem. Please try again."; }
+  } catch {
+    $("orderErr").textContent = navigator.onLine ? "Connection problem. Your cart is saved, please try again." : "You are offline. Your cart is saved, we will be here when you reconnect.";
+  }
   btn.disabled = false;
 };
 const openCart = (on) => { $("cart").classList.toggle("on", on); $("scrim").classList.toggle("on", on); };
@@ -195,8 +198,20 @@ addEventListener("scroll", () => {
 }, { passive: true });
 
 splitHeadline(); restoreChat();
-fetch(API + "/api/products").then((r) => r.json()).then((d) => { products = d.products; renderFloaters(); renderFilters(); renderGrid(); renderCart(); })
-  .catch(() => toast("Could not load products. Please refresh."));
+function loadProducts(retry) {
+  fetch(API + "/api/products").then((r) => { if (!r.ok) throw new Error("bad"); return r.json(); }).then((d) => {
+    products = d.products; try { localStorage.setItem("rl_products", JSON.stringify(products)); } catch {}
+    renderFloaters(); renderFilters(); renderGrid(); renderCart();
+  }).catch(() => {
+    let cached = null; try { cached = JSON.parse(localStorage.getItem("rl_products") || "null"); } catch {}
+    if (cached && cached.length) { products = cached; renderFloaters(); renderFilters(); renderGrid(); renderCart(); toast("Showing saved catalog. Reconnecting..."); }
+    else { const g = $("grid"); g.replaceChildren(); const b = el("button", "Retry", "btn"); b.onclick = () => { g.replaceChildren(); loadProducts(0); }; const w = el("div", null, "gerr"); w.append(el("p", "We could not load the collection. Check your connection."), b); g.append(w); }
+    if (retry < 3) setTimeout(() => loadProducts(retry + 1), 4000 * (retry + 1));
+  });
+}
+loadProducts(0);
+function netBanner() { let b = document.getElementById("netBanner"); if (!navigator.onLine) { if (!b) { b = el("div", "You are offline. Your cart is saved and will be here when you reconnect.", "netbanner"); b.id = "netBanner"; document.body.prepend(b); } } else if (b) { b.remove(); loadProducts(3); } }
+addEventListener("offline", netBanner); addEventListener("online", netBanner);
 
 $("q").oninput = (e) => { query = e.target.value.trim().toLowerCase(); renderGrid(); };
 $("sort").onchange = (e) => { sortBy = e.target.value; renderGrid(); };

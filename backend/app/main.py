@@ -1,10 +1,10 @@
-import logging, time
+import json, logging, time
 from collections import defaultdict, deque
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from . import agent, catalog, cart as cartlib, orders
-from .config import ALLOWED_ORIGINS, PRICE_EGP, SHIPPING_EGP, SIZES
+from .config import ALLOWED_ORIGINS, RESEND_API_KEY, OPENROUTER_API_KEY, PRICE_EGP, SHIPPING_EGP, SIZES
 
 log = logging.getLogger("rlvnt")
 app = FastAPI(title="RLVNT API")
@@ -36,9 +36,12 @@ class ChatIn(BaseModel):
     cart: dict[str, int] = {}
 
 
+@app.get("/api/health")
 @app.get("/health")
 def health():
-    return {"ok": True}
+    n = len(catalog.load_products())
+    checks = {"products": n > 0, "order_email": bool(RESEND_API_KEY), "assistant": bool(OPENROUTER_API_KEY)}
+    return {"ok": checks["products"], "status": "ok" if all(checks.values()) else "degraded", "products": n, "checks": checks}
 
 
 @app.get("/api/products")
@@ -82,10 +85,13 @@ async def place_order(body: orders.OrderIn, request: Request):
         raise HTTPException(status_code=422, detail=str(e))
     num = orders.order_number()
     subject, text, html_ = orders.render(body, num, pr)
-    try:
-        await orders.send_email(subject, text, html_)
-    except Exception:
-        log.exception("order email failed")
-        raise HTTPException(status_code=503, detail="We could not send your order right now. Please contact support on WhatsApp.")
+    sent = await orders.deliver(subject, text, html_)
+    if not sent:
+        # Continuity fallback: the full order goes to the platform log (recoverable from Vercel logs)
+        # and the customer gets a prefilled WhatsApp message so the order is never lost.
+        log.error("ORDER_FALLBACK %s", json.dumps({"order": num, "text": text}, ensure_ascii=False))
+        q.append(now)
+        return {"ok": True, "order_number": num, "total": pr["total"], "shipping": pr["shipping"],
+                "fallback": True, "whatsapp_url": orders.whatsapp_link(text)}
     q.append(now)
     return {"ok": True, "order_number": num, "total": pr["total"], "shipping": pr["shipping"]}

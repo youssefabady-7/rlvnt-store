@@ -13,3 +13,7 @@ then open `public/index.html`. Tests: `cd backend && pytest`.
 Fixes vs Brand-mind2: the real LLM is actually called; one config source (no threshold mismatch);
 errors are logged and returned, never swallowed; dependencies pinned in one requirements file;
 README matches the file layout.
+
+## Resilience
+
+See `DISASTER_RECOVERY.md` (risk table, RTO/RPO, rollback steps). Catalog backup: `python scripts/catalog_backup.py backup|verify|restore`. Orders fall back to a log + prefilled WhatsApp link if email fails.
