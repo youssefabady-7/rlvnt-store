@@ -1,0 +1,271 @@
+[
+ {
+  "id": "rl-001",
+  "name": "Real Madrid Los Blancos Set",
+  "category": "sets",
+  "tags": [
+   "real madrid",
+   "football",
+   "black",
+   "grey",
+   "sweatshirt",
+   "sweatpants",
+   "wide-leg",
+   "graphic",
+   "set"
+  ],
+  "description": "Black Real Madrid Los Blancos graphic sweatshirt with grey wide-leg sweatpants.",
+  "image": "images/real-madrid-set.jpg"
+ },
+ {
+  "id": "rl-002",
+  "name": "Adriano Inter Milan Sweatshirt",
+  "category": "sweatshirts",
+  "tags": [
+   "inter milan",
+   "adriano",
+   "football",
+   "black",
+   "blue",
+   "graphic",
+   "winter",
+   "sweatshirt"
+  ],
+  "description": "Black Adriano Inter Milan graphic sweatshirt from the Winter Collection.",
+  "image": "images/adriano-inter.jpg"
+ },
+ {
+  "id": "rl-003",
+  "name": "San Andreas Sweatshirt",
+  "category": "sweatshirts",
+  "tags": [
+   "san andreas",
+   "gta",
+   "black",
+   "graphic",
+   "winter"
+  ],
+  "description": "San Andreas Sweatshirt from RLVNT.",
+  "image": "images/a-000.jpg"
+ },
+ {
+  "id": "rl-004",
+  "name": "Gold Signature Sweatshirt",
+  "category": "sweatshirts",
+  "tags": [
+   "black",
+   "gold",
+   "signature",
+   "graphic",
+   "winter"
+  ],
+  "description": "Gold Signature Sweatshirt from RLVNT.",
+  "image": "images/a-001.jpg"
+ },
+ {
+  "id": "rl-005",
+  "name": "Mbappe World Cup Sweatshirt",
+  "category": "sweatshirts",
+  "tags": [
+   "mbappe",
+   "world cup",
+   "football",
+   "white",
+   "graphic",
+   "winter"
+  ],
+  "description": "Mbappe World Cup Sweatshirt from RLVNT.",
+  "image": "images/a-002.jpg"
+ },
+ {
+  "id": "rl-006",
+  "name": "Maradona Sweatshirt",
+  "category": "sweatshirts",
+  "tags": [
+   "maradona",
+   "argentina",
+   "football",
+   "white",
+   "graphic",
+   "winter"
+  ],
+  "description": "Maradona Sweatshirt from RLVNT.",
+  "image": "images/a-003.jpg"
+ },
+ {
+  "id": "rl-007",
+  "name": "Dogs Gotta Eat Sweatshirt",
+  "category": "sweatshirts",
+  "tags": [
+   "dogs gotta eat",
+   "black",
+   "red",
+   "typography",
+   "winter"
+  ],
+  "description": "Dogs Gotta Eat Sweatshirt from RLVNT.",
+  "image": "images/a-004.jpg"
+ },
+ {
+  "id": "rl-008",
+  "name": "Boxer Graphic Sweatshirt",
+  "category": "sweatshirts",
+  "tags": [
+   "boxer",
+   "white",
+   "blue",
+   "graphic",
+   "winter"
+  ],
+  "description": "Boxer Graphic Sweatshirt from RLVNT.",
+  "image": "images/a-005.jpg"
+ },
+ {
+  "id": "rl-009",
+  "name": "Cigarette Portrait Sweatshirt",
+  "category": "sweatshirts",
+  "tags": [
+   "portrait",
+   "black",
+   "graphic",
+   "winter"
+  ],
+  "description": "Cigarette Portrait Sweatshirt from RLVNT.",
+  "image": "images/a-006.jpg"
+ },
+ {
+  "id": "rl-010",
+  "name": "Star Script Sweatshirt",
+  "category": "sweatshirts",
+  "tags": [
+   "black",
+   "red",
+   "blue",
+   "star",
+   "graphic",
+   "winter"
+  ],
+  "description": "Star Script Sweatshirt from RLVNT.",
+  "image": "images/a-007.jpg"
+ },
+ {
+  "id": "rl-011",
+  "name": "Scarface Sweatshirt",
+  "category": "sweatshirts",
+  "tags": [
+   "scarface",
+   "movie",
+   "white",
+   "red",
+   "graphic",
+   "winter"
+  ],
+  "description": "Scarface Sweatshirt from RLVNT.",
+  "image": "images/a-008.jpg"
+ },
+ {
+  "id": "rl-012",
+  "name": "Retro Milan Jersey and Denim Set",
+  "category": "sets",
+  "tags": [
+   "milan",
+   "jersey",
+   "retro",
+   "denim",
+   "wide-leg",
+   "football",
+   "set"
+  ],
+  "description": "Retro Milan Jersey and Denim Set from RLVNT.",
+  "image": "images/b-000.jpg"
+ },
+ {
+  "id": "rl-013",
+  "name": "Lionel Messi Hoodie",
+  "category": "hoodies",
+  "tags": [
+   "messi",
+   "football",
+   "black",
+   "hoodie",
+   "cotton"
+  ],
+  "description": "Lionel Messi Hoodie from RLVNT.",
+  "image": "images/b-001.jpg"
+ },
+ {
+  "id": "rl-014",
+  "name": "Neymar Hoodie and Denim Set",
+  "category": "sets",
+  "tags": [
+   "neymar",
+   "hoodie",
+   "brown",
+   "denim",
+   "wide-leg",
+   "football",
+   "set"
+  ],
+  "description": "Neymar Hoodie and Denim Set from RLVNT.",
+  "image": "images/b-002.jpg"
+ },
+ {
+  "id": "rl-015",
+  "name": "Germany Track Jacket and Denim Set",
+  "category": "sets",
+  "tags": [
+   "germany",
+   "track jacket",
+   "adidas style",
+   "denim",
+   "football",
+   "set"
+  ],
+  "description": "Germany Track Jacket and Denim Set from RLVNT.",
+  "image": "images/b-003.jpg"
+ },
+ {
+  "id": "rl-016",
+  "name": "Black Graphic Sweatshirt and Sweatpants Set",
+  "category": "sets",
+  "tags": [
+   "black",
+   "sweatshirt",
+   "sweatpants",
+   "set",
+   "monochrome"
+  ],
+  "description": "Black Graphic Sweatshirt and Sweatpants Set from RLVNT.",
+  "image": "images/b-004.jpg"
+ },
+ {
+  "id": "rl-017",
+  "name": "Black Half-Zip and Pants Set",
+  "category": "sets",
+  "tags": [
+   "black",
+   "half-zip",
+   "pullover",
+   "pants",
+   "monochrome",
+   "set"
+  ],
+  "description": "Black Half-Zip and Pants Set from RLVNT.",
+  "image": "images/b-005.jpg"
+ },
+ {
+  "id": "rl-018",
+  "name": "No Fear Sweatshirt and Pants Set",
+  "category": "sets",
+  "tags": [
+   "no fear",
+   "black",
+   "red",
+   "sweatshirt",
+   "pants",
+   "set"
+  ],
+  "description": "No Fear Sweatshirt and Pants Set from RLVNT.",
+  "image": "images/b-007.jpg"
+ }
+]
