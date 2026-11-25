@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>RLVNT Admin</title>
+<link rel="icon" href="images/logo.png"><link rel="stylesheet" href="admin.css">
+</head><body>
+<div id="login" class="loginwrap hidden">
+  <form id="loginForm" class="logincard" autocomplete="on">
+    <img src="images/logo.png" alt="RLVNT"><h1>Admin</h1>
+    <input id="pw" type="password" placeholder="Password" autocomplete="current-password" required>
+    <button class="btn" id="loginBtn">Sign in</button>
+    <p id="loginErr" class="err"></p>
+  </form>
+</div>
+<div id="app" class="hidden">
+  <header class="top"><img src="images/logo.png" alt=""><b id="brand">Admin</b>
+    <nav id="tabs"><button data-t="products" class="on">Products</button><button data-t="orders">Orders</button><button data-t="settings">Settings</button><button data-t="backup">Backup</button></nav>
+    <button id="logout" class="ghost">Sign out</button></header>
+  <main>
+    <section id="t-products">
+      <div class="bar"><input id="psearch" placeholder="Search products"><button class="btn" id="addP">+ Add product</button><button class="ghost" id="undo">Undo last change</button></div>
+      <div id="plist" class="plist"></div>
+    </section>
+    <section id="t-orders" class="hidden"><div class="bar"><button class="ghost" id="reloadO">Refresh</button><span id="oinfo" class="muted"></span></div><div id="olist"></div></section>
+    <section id="t-settings" class="hidden"><form id="sform" class="sform"></form></section>
+    <section id="t-backup" class="hidden">
+      <div class="card"><h3>Download a backup</h3><p class="muted">All products and settings in one file. Orders are not included (they stay in the order store).</p><button class="btn" id="dl">Download backup</button></div>
+      <div class="card"><h3>Restore from a backup file</h3><p class="muted">Replaces ALL products and settings with the file. Product images that were uploaded stay stored, so a restore keeps them. You can undo with "Undo last change" in Products.</p><input type="file" id="restoreFile" accept="application/json"><button class="ghost" id="restore">Restore</button></div>
+    </section>
+  </main>
+</div>
+<div id="modal" class="modal hidden"><div class="mbox"><form id="pform"></form></div></div>
+<div id="toast" class="toast"></div>
+<script src="admin.js"></script>
+</body></html>

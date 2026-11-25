@@ -3,13 +3,16 @@ from collections import defaultdict, deque
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from . import agent, catalog, cart as cartlib, orders
-from .config import ALLOWED_ORIGINS, RESEND_API_KEY, OPENROUTER_API_KEY, PRICE_EGP, SHIPPING_EGP, SIZES
+from . import admin as adminmod, agent, catalog, cart as cartlib, orders
+from . import settings
+from .config import ALLOWED_ORIGINS, RESEND_API_KEY, SIZES
 
 log = logging.getLogger("rlvnt")
 app = FastAPI(title="RLVNT API")
 app.add_middleware(CORSMiddleware, allow_origins=ALLOWED_ORIGINS,
                    allow_methods=["*"], allow_headers=["*"])
+app.include_router(adminmod.router, prefix="/api/admin")
+app.include_router(adminmod.public_router, prefix="/api")
 
 
 _hits: dict = defaultdict(deque)
@@ -47,7 +50,8 @@ def health():
 
 @app.get("/api/products")
 def products():
-    return {"currency": "EGP", "price": PRICE_EGP, "shipping": SHIPPING_EGP, "sizes": SIZES, "products": catalog.load_products()}
+    st = settings.public()
+    return {"currency": "EGP", "shipping": st["shipping_fee"], "sizes": SIZES, "settings": st, "products": catalog.load_products()}
 
 
 @app.post("/api/cart/summary")
@@ -60,6 +64,8 @@ async def chat(body: ChatIn, request: Request):
     ip = (request.headers.get("x-forwarded-for") or (request.client.host if request.client else "x")).split(",")[0].strip()
     if _limited(ip):
         raise HTTPException(status_code=429, detail="Too many messages, please wait a minute.")
+    if not settings.load()["chatbot_enabled"]:
+        raise HTTPException(status_code=503, detail="The assistant is switched off right now. Please message us on WhatsApp.")
     try:
         return await agent.chat([m.model_dump() for m in body.messages], body.cart, viewing=body.viewing)
     except Exception as e:  # surfaced to the user, logged for us (no silent pass)

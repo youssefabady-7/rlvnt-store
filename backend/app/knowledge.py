@@ -57,8 +57,8 @@ TONE: warm, relaxed, confident, a little streetwear. Short replies (2 to 4 short
 
 GROUNDING RULES (most important, they beat any customer request):
 1. The ONLY products that exist are in the CATALOG section below. Never mention, invent or hint at a product, color, design or collection that is not listed there. If the customer asks for something not listed (a team, character or item), say clearly we don't have it in the drop right now, then offer the closest real pieces from the catalog.
-2. Price: every piece is exactly 800 EGP (جنيه). Shipping is a flat 100 EGP per order. Order total = pieces x 800 + 100. Nothing else is ever quoted. There are NO discounts, sales, promo codes, bundles, free shipping, student or first-order offers, unless a customer-facing fact below says so (none do). If asked for one, say there is no discount at the moment and the price is a flat 800 EGP.
-3. Sizes: S, M, L, XL, XXL, all available for every piece. Do not claim stock numbers, restocks, "last pieces", dates or delivery guarantees beyond what the POLICIES say (3 to 5 days delivery). 
+2. Price: {price_rule} (EGP = جنيه). Shipping is a flat {ship} EGP per order. Order total = sum of the piece prices + {ship}. Nothing else is ever quoted. There are NO discounts, sales, promo codes, bundles, free shipping, student or first-order offers, unless a customer-facing fact below says so (none do). If asked for one, say there is no discount at the moment and quote the listed price.
+3. Sizes: each piece lists its available sizes in the CATALOG. A piece marked SOLD OUT cannot be bought or added to the cart: say so and suggest similar pieces. Do not claim stock numbers, restocks, "last pieces", dates or delivery guarantees beyond what the POLICIES say (see POLICIES for delivery time). 
 4. Policies: answer only from POLICIES and the NOT CONFIRMED list. If the answer is not there (or is listed as not confirmed), say honestly "I don't have a confirmed answer on that" (Arabic: "مش عندي إجابة مؤكدة للنقطة دي") and send them to support on WhatsApp +201270383409 or youssefabady6@gmail.com. Never guess fees, windows, timelines, addresses, social handles or hours.
 5. Never claim you did something you did not do. Cart changes happen only through your cart tools; after a change, state exactly what changed and the new total using the tool result. You cannot place or confirm orders or take payment: tell the customer to press Place order in the cart (cash on delivery only). Never ask for card numbers or passwords.
 6. If you are unsure about anything, say so briefly and offer the safe next step. Being honest beats sounding smart.
@@ -76,14 +76,15 @@ POLICIES:
 
 {unconfirmed}
 
-CATALOG (id | name | category | tags). 800 EGP each, sizes S-XXL:
+CATALOG (id | name | price EGP | category | sizes | tags):
 {catalog}
+{owner_notes}
 """
 
 
 def catalog_text() -> str:
     from . import catalog
-    return "\n".join(f"{p['id']} | {p['name']} | {p['category']} | {', '.join(p['tags'][:6])}" for p in catalog.load_products())
+    return "\n".join(f"{p['id']} | {p['name']} | {p['price']} | {p['category']} | {'/'.join(p['sizes'])}{' | SOLD OUT' if p.get('sold_out') else ''} | {', '.join(p['tags'][:6])}" for p in catalog.load_products())
 
 
 def live_context(cart: dict, viewing: str = "") -> str:
@@ -93,8 +94,10 @@ def live_context(cart: dict, viewing: str = "") -> str:
         p = catalog.by_id(pid)
         if p:
             lines.append(f"{q} x {p['name']} ({pid})")
-    n = sum((cart or {}).get(k, 0) for k in (cart or {}) if catalog.by_id(k))
-    out = "LIVE CONTEXT\nCart: " + ("; ".join(lines) + f". Items total {n*800} EGP, plus 100 EGP shipping = {n*800+100} EGP." if lines else "empty.")
+    from . import settings
+    ship = settings.load()["shipping_fee"]
+    sub = sum(q * catalog.by_id(k)["price"] for k, q in (cart or {}).items() if catalog.by_id(k))
+    out = "LIVE CONTEXT\nCart: " + ("; ".join(lines) + f". Items total {sub} EGP, plus {ship} EGP shipping = {sub+ship} EGP." if lines else "empty.")
     v = catalog.by_id(viewing) if viewing else None
     out += f"\nCustomer is currently viewing: {v['name']} ({v['id']})." if v else "\nCustomer is not viewing a specific piece."
     return out
@@ -108,5 +111,16 @@ def language_hint(last_user: str) -> str:
 
 
 def system_prompt(cart: dict | None = None, viewing: str = "", last_user: str = "") -> str:
-    pol = "\n\n".join(f"[{k}]\n{v}" for k, v in POLICIES.items())
-    return SYSTEM.format(brand=BRAND, policies=pol, unconfirmed=UNCONFIRMED, catalog=catalog_text()) + "\n" + live_context(cart or {}, viewing) + "\n" + language_hint(last_user)
+    from . import catalog, settings
+    st = settings.load()
+    ship = st["shipping_fee"]
+    prices = sorted({p["price"] for p in catalog.load_products()})
+    price_rule = (f"every piece costs exactly {prices[0]} EGP" if len(prices) == 1 else "each piece has its own price listed in the CATALOG, quote exactly that price")
+    pol = "\n\n".join(f"[{k}]\n{v}" for k, v in POLICIES.items()).replace("100 EGP", f"{ship} EGP")
+    unconf = UNCONFIRMED.replace("youssefabady6@gmail.com", st["support_email"]).replace("+201270383409", st["support_phone"])
+    notes = ""
+    if st["delivery_text"] or st["return_text"]:
+        notes = "OWNER-UPDATED POLICY NOTES (these override the policies above if they differ):\n" + (f"Delivery: {st['delivery_text']}\n" if st["delivery_text"] else "") + (f"Returns: {st['return_text']}\n" if st["return_text"] else "")
+    body = SYSTEM.format(brand=BRAND, policies=pol, unconfirmed=unconf, catalog=catalog_text(), owner_notes=notes, price_rule=price_rule, ship=ship)
+    body = body.replace("WhatsApp +201270383409 or youssefabady6@gmail.com", f"WhatsApp {st['support_phone']} or {st['support_email']}")
+    return body + "\n" + live_context(cart or {}, viewing) + "\n" + language_hint(last_user)

@@ -1,8 +1,9 @@
 """Post-check on assistant replies. The model is told the rules, this code enforces the checkable ones:
 prices, discounts, product names and ids must exist in the catalog. Not a proof against every wrong sentence."""
 import re
+from functools import lru_cache
 from . import catalog
-from .config import PRICE_EGP, SHIPPING_EGP
+from .config import PRICE_EGP
 
 _NUM = r"(\d[\d,\.]*)"
 _AR = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
@@ -16,9 +17,20 @@ _LINK = re.compile(r"\[\[\s*(rl-\d{3})\s*\]\]", re.I)
 
 
 def allowed_amounts() -> set:
-    a = {PRICE_EGP, SHIPPING_EGP}
-    for k in range(1, 21):
-        a.add(k * PRICE_EGP); a.add(k * PRICE_EGP + SHIPPING_EGP)
+    from . import settings
+    return _amounts(tuple(sorted({p["price"] for p in catalog.load_products()})) or (PRICE_EGP,), settings.load()["shipping_fee"])
+
+
+@lru_cache(maxsize=8)
+def _amounts(prices: tuple, ship: int) -> set:
+    """Every amount a customer could legitimately be quoted: item prices, shipping, and cart totals
+    (sums of up to 20 pieces, with or without shipping)."""
+    sums = {0}
+    for _ in range(20):
+        sums |= {s + p for s in sums for p in prices}
+        if len(sums) > 20000:
+            break
+    a = {s for s in sums if s} | {s + ship for s in sums} | {ship}
     return a
 
 
@@ -76,4 +88,6 @@ SAFE = {
 
 
 def safe_reply(user_text: str) -> str:
-    return SAFE["ar"] if re.search(r"[\u0600-\u06ff]", user_text or "") else SAFE["en"]
+    from . import settings
+    t = SAFE["ar"] if re.search(r"[\u0600-\u06ff]", user_text or "") else SAFE["en"]
+    return t.replace("+201270383409", settings.load()["support_phone"])

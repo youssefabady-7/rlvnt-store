@@ -7,7 +7,24 @@ let wish = JSON.parse(localStorage.getItem("rl_wish") || "[]");
 const saveWish = () => localStorage.setItem("rl_wish", JSON.stringify(wish));
 function toggleWish(id) { wish = wish.includes(id) ? wish.filter((x) => x !== id) : [...wish, id]; saveWish(); renderFilters(); toast(wish.includes(id) ? "Saved" : "Removed from saved"); }
 let sizes = JSON.parse(localStorage.getItem("rl_sizes") || "{}");
-const SIZES = ["S", "M", "L", "XL", "XXL"], SHIPPING = 100;
+const ALL_SIZES = ["S", "M", "L", "XL", "XXL"];
+const sizesOf = (p) => (p && p.sizes && p.sizes.length ? p.sizes : ALL_SIZES);
+const DEFAULT_S = { store_name: "RLVNT", announcement: "Cash on delivery · 3 to 5 day delivery · 800 EGP every piece", shipping_fee: 100, support_phone: "+201270383409", support_email: "youssefabady6@gmail.com", whatsapp_number: "201270383409", chatbot_enabled: true, delivery_text: "", return_text: "" };
+let S = { ...DEFAULT_S };
+try { S = { ...DEFAULT_S, ...JSON.parse(localStorage.getItem("rl_settings") || "{}") }; } catch {}
+const waLink = (text) => `https://wa.me/${S.whatsapp_number}?text=${encodeURIComponent(text)}`;
+function applySettings() {
+  const prices = [...new Set(products.map((p) => p.price))];
+  const priceLine = prices.length === 1 ? `Every piece ${prices[0]} EGP.` : prices.length ? `Pieces from ${Math.min(...prices)} EGP.` : "";
+  if ($("annc")) $("annc").textContent = S.announcement;
+  if ($("heroSub")) $("heroSub").textContent = `Graphic pieces from football, film and the street. ${priceLine}`.trim();
+  document.querySelectorAll(".mq-price").forEach((n) => { n.textContent = prices.length === 1 ? `${prices[0]} EGP EVERY PIECE` : prices.length ? `FROM ${Math.min(...prices)} EGP` : "RLVNT STREETWEAR"; });
+  if ($("footSupport")) $("footSupport").textContent = `Prices in EGP. Support: ${S.support_email} · ${S.support_phone}`;
+  if ($("chatFoot")) $("chatFoot").textContent = `AI assistant. For anything unsure, WhatsApp ${S.support_phone}`;
+  document.title = `${S.store_name} | Streetwear`;
+  $("chatFab").style.display = S.chatbot_enabled ? "" : "none"; if (!S.chatbot_enabled) $("chat").classList.remove("on");
+  if ($("askBtn")) $("askBtn").style.display = S.chatbot_enabled ? "" : "none";
+}
 let history = JSON.parse(sessionStorage.getItem("rl_chat") || "[]");
 
 /* ---------- helpers ---------- */
@@ -26,7 +43,7 @@ function fly(imgEl) {
   c.animate([{ transform: "none", opacity: 1 }, { transform: `translate(${t.left - r.left}px,${t.top - r.top}px) scale(.08) rotate(25deg)`, opacity: .2 }],
     { duration: 750, easing: "cubic-bezier(.5,0,.8,.4)" }).onfinish = () => c.remove();
 }
-function addItem(p, imgEl) { saveCart({ ...cart, [p.id]: Math.min((cart[p.id] || 0) + 1, 20) }); fly(imgEl); toast(`${p.name} added`); }
+function addItem(p, imgEl) { if (p.sold_out) { toast("Sold out"); return; } saveCart({ ...cart, [p.id]: Math.min((cart[p.id] || 0) + 1, 20) }); fly(imgEl); toast(`${p.name} added`); }
 
 /* ---------- hero ---------- */
 function splitHeadline() {
@@ -74,7 +91,7 @@ function renderGrid() {
     const top = el("div", null, "mtop"); top.append(el("span", String(i + 1).padStart(2, "0"), "idx"), el("span", p.category, "cat"));
     meta.append(top, el("h4", p.name));
     const row = el("div", null, "mrow"); row.append(el("span", `${p.price} EGP`, "pr"));
-    const add = el("button", "Add +", "add"); add.onclick = (ev) => { ev.stopPropagation(); addItem(p, img); add.classList.add("ok"); setTimeout(() => add.classList.remove("ok"), 900); };
+    const add = el("button", p.sold_out ? "Sold out" : "Add +", "add"); if (p.sold_out) { add.disabled = true; c.classList.add("soldout"); } add.onclick = (ev) => { ev.stopPropagation(); addItem(p, img); add.classList.add("ok"); setTimeout(() => add.classList.remove("ok"), 900); };
     row.append(add); meta.append(row);
     c.append(pic, meta); g.append(c); io.observe(c);
   });
@@ -91,14 +108,14 @@ function openQV(p) {
   const right = el("div", null, "qvinfo");
   right.append(el("span", p.category, "cat"), el("h3", p.name), el("p", `${p.price} EGP`, "pr"), el("p", p.description, "desc"));
   const sz = el("div", null, "pills"); let chosen = sizes[p.id] || "";
-  SIZES.forEach((s) => { const b = el("button", s, "pill" + (s === chosen ? " on" : "")); b.type = "button"; b.onclick = () => { chosen = s; sizes[p.id] = s; localStorage.setItem("rl_sizes", JSON.stringify(sizes)); sz.querySelectorAll(".pill").forEach((x) => x.classList.toggle("on", x.textContent === s)); }; sz.append(b); });
-  const add = el("button", "Add to cart", "btn full"); add.onclick = () => { addItem(p, im); renderCart(); setTimeout(() => closeQV(), 350); };
+  sizesOf(p).forEach((s) => { const b = el("button", s, "pill" + (s === chosen ? " on" : "")); b.type = "button"; b.onclick = () => { chosen = s; sizes[p.id] = s; localStorage.setItem("rl_sizes", JSON.stringify(sizes)); sz.querySelectorAll(".pill").forEach((x) => x.classList.toggle("on", x.textContent === s)); }; sz.append(b); });
+  const add = el("button", p.sold_out ? "Sold out" : "Add to cart", "btn full"); if (p.sold_out) add.disabled = true; add.onclick = () => { addItem(p, im); renderCart(); setTimeout(() => closeQV(), 350); };
   const sg = el("button", "Size guide", "linkbtn"); sg.type = "button"; sg.onclick = () => right.querySelector(".guide").classList.toggle("open");
   const guide = el("div", null, "guide"); guide.innerHTML = '<table><tr><th>Size</th><th>Length</th><th>Chest</th><th>Sleeve</th></tr><tr><td>S</td><td>72</td><td>58</td><td>63.6</td></tr><tr><td>M</td><td>74</td><td>61</td><td>64</td></tr><tr><td>L</td><td>76</td><td>64</td><td>64.4</td></tr><tr><td>XL</td><td>78</td><td>67</td><td>64.8</td></tr><tr><td>XXL</td><td>79</td><td>70</td><td>65.2</td></tr></table><small>Approximate, in cm, oversized fit. Ask the assistant if unsure.</small>';
   const rel = el("div", null, "related"); rel.append(el("small", "You may also like"));
   const rr = el("div", null, "rrow"); products.filter((x) => x.id !== p.id && x.category === p.category).slice(0, 4).concat(products.filter((x) => x.category !== p.category)).slice(0, 4).forEach((x) => { const t = el("button", null, "rthumb"); t.type = "button"; const ti = document.createElement("img"); ti.src = x.image; ti.alt = x.name; ti.title = x.name; t.append(ti); t.onclick = () => openQV(x); rr.append(t); }); rel.append(rr);
-  const wa = el("a", "Order via WhatsApp", "linkbtn"); wa.target = "_blank"; wa.rel = "noopener"; wa.href = "https://wa.me/201270383409?text=" + encodeURIComponent(`Hi RLVNT, I want the ${p.name} (${p.id}), size ${sizes[p.id] || "?"}`);
-  right.append(el("small", "Size (all available)"), sz, sg, guide, add, wa, rel, el("p", "Cash on delivery · 3 to 5 days · 100 EGP shipping", "note"));
+  const wa = el("a", "Order via WhatsApp", "linkbtn"); wa.target = "_blank"; wa.rel = "noopener"; wa.href = waLink(`Hi ${S.store_name}, I want the ${p.name} (${p.id}), size ${sizes[p.id] || "?"}`);
+  right.append(el("small", p.sold_out ? "Sold out" : "Size"), sz, sg, guide, add, wa, rel, el("p", `Cash on delivery · ${S.delivery_text || "3 to 5 days"} · ${S.shipping_fee} EGP shipping`, "note"));
   box.append(left, right); q.classList.add("on"); document.body.style.overflow = "hidden";
 }
 function closeQV() { viewingId = ""; $("qv").classList.remove("on"); document.body.style.overflow = ""; }
@@ -119,13 +136,13 @@ function renderCart() {
     pl.onclick = () => saveCart({ ...cart, [id]: Math.min(q + 1, 20) });
     qty.append(m, el("span", String(q)), pl); info.append(qty);
     const sz = el("div", null, "sz"); const sel = document.createElement("select"); sel.dataset.id = id;
-    const ph = el("option", "Size"); ph.value = ""; sel.append(ph); SIZES.forEach((s) => { const o = el("option", s); o.value = s; sel.append(o); });
+    const ph = el("option", "Size"); ph.value = ""; sel.append(ph); sizesOf(p).forEach((s) => { const o = el("option", s); o.value = s; sel.append(o); });
     sel.value = sizes[id] || ""; sel.onchange = () => { sizes[id] = sel.value; localStorage.setItem("rl_sizes", JSON.stringify(sizes)); sel.classList.remove("bad"); };
     sz.append(sel); info.append(sz);
     row.append(im, info, el("b", `${q * p.price}`)); box.append(row);
   }
   if (!count) box.append(el("p", "Your cart is empty.", "empty"));
-  const ship = count ? SHIPPING : 0;
+  const ship = count ? S.shipping_fee : 0;
   $("sub").textContent = total; $("ship").textContent = ship; $("total").textContent = total + ship; $("total2").textContent = total + ship; $("count").textContent = count;
   $("checkoutBtn").disabled = !count;
 }
@@ -153,12 +170,12 @@ $("orderForm").onsubmit = async (e) => {
         el("p", "Your order is NOT confirmed yet. Our order system could not reach us. Tap the button below and press send in WhatsApp so we receive it."),
         el("p", `Total ${d.total} EGP cash on delivery.`));
       const w = el("a", "Send order on WhatsApp now", "btn full"); w.href = d.whatsapp_url; w.target = "_blank"; w.rel = "noopener"; box.append(w);
-      box.append(el("p", "Questions? youssefabady6@gmail.com · +201270383409"));
+      box.append(el("p", `Questions? ${S.support_email} · ${S.support_phone}`));
       const ok = el("button", "Back to shop", "btn full"); ok.onclick = () => { mode(null); openCart(false); }; box.append(ok);
       saveCart({}); sizes = {}; localStorage.removeItem("rl_sizes"); f.reset(); mode("done"); return;
     }
     box.replaceChildren(el("div", "✓", "check"), el("h3", "Order placed"), el("p", `Order ${d.order_number}`), el("p", `Pay ${d.total} EGP cash on delivery. Delivery in 3 to 5 days. We may confirm by phone or WhatsApp.`),
-      el("p", "Questions? youssefabady6@gmail.com · +201270383409"));
+      el("p", `Questions? ${S.support_email} · ${S.support_phone}`));
     const ok = el("button", "Continue shopping", "btn full"); ok.onclick = () => { mode(null); openCart(false); }; box.append(ok);
     saveCart({}); sizes = {}; localStorage.removeItem("rl_sizes"); f.reset(); mode("done");
   } catch {
@@ -217,11 +234,12 @@ addEventListener("scroll", () => {
 splitHeadline(); restoreChat();
 function loadProducts(retry) {
   fetch(API + "/api/products").then((r) => { if (!r.ok) throw new Error("bad"); return r.json(); }).then((d) => {
-    products = d.products; try { localStorage.setItem("rl_products", JSON.stringify(products)); } catch {}
+    products = d.products; if (d.settings) { S = { ...DEFAULT_S, ...d.settings }; try { localStorage.setItem("rl_settings", JSON.stringify(S)); } catch {} } try { localStorage.setItem("rl_products", JSON.stringify(products)); } catch {}
+    applySettings();
     renderFloaters(); renderFilters(); renderGrid(); renderCart();
   }).catch(() => {
     let cached = null; try { cached = JSON.parse(localStorage.getItem("rl_products") || "null"); } catch {}
-    if (cached && cached.length) { products = cached; renderFloaters(); renderFilters(); renderGrid(); renderCart(); toast("Showing saved catalog. Reconnecting..."); }
+    if (cached && cached.length) { products = cached; applySettings(); renderFloaters(); renderFilters(); renderGrid(); renderCart(); toast("Showing saved catalog. Reconnecting..."); }
     else { const g = $("grid"); g.replaceChildren(); const b = el("button", "Retry", "btn"); b.onclick = () => { g.replaceChildren(); loadProducts(0); }; const w = el("div", null, "gerr"); w.append(el("p", "We could not load the collection. Check your connection."), b); g.append(w); }
     if (retry < 3) setTimeout(() => loadProducts(retry + 1), 4000 * (retry + 1));
   });

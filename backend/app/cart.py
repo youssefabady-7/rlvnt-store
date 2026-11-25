@@ -1,12 +1,14 @@
 """Pure cart logic. The cart is a dict {product_id: qty} owned by the client and
 sent with each request, so the backend stays stateless."""
 from . import catalog
-from .config import PRICE_EGP
 
 
 def add(cart: dict, pid: str, qty: int = 1) -> tuple[dict, str]:
-    if not catalog.by_id(pid):
+    p = catalog.by_id(pid)
+    if not p:
         return cart, f"error: unknown product id {pid}"
+    if p.get("sold_out"):
+        return cart, f"error: {p['name']} is sold out"
     qty = max(1, min(int(qty), 10))
     cart = dict(cart)
     cart[pid] = min(cart.get(pid, 0) + qty, 20)
@@ -33,5 +35,5 @@ def summary(cart: dict) -> dict:
     for pid, q in cart.items():
         p = catalog.by_id(pid)
         if p:
-            lines.append({"id": pid, "name": p["name"], "qty": q, "line_total": q * PRICE_EGP})
+            lines.append({"id": pid, "name": p["name"], "qty": q, "line_total": q * p["price"]})
     return {"items": lines, "total_egp": sum(l["line_total"] for l in lines)}

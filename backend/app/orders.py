@@ -2,7 +2,8 @@ import html, random, re, string, time
 import httpx
 from pydantic import BaseModel, Field, field_validator
 from . import catalog
-from .config import (PRICE_EGP, SHIPPING_EGP, SIZES, ORDER_EMAIL, RESEND_API_KEY, ORDER_FROM)
+from . import settings
+from .config import SIZES, RESEND_API_KEY, ORDER_FROM
 
 
 class Line(BaseModel):
@@ -47,9 +48,14 @@ def price(order: OrderIn) -> dict:
         p = catalog.by_id(l.id)
         if not p:
             raise ValueError(f"unknown product {l.id}")
-        lines.append({"name": p["name"], "id": l.id, "size": l.size, "qty": l.qty, "total": l.qty * PRICE_EGP})
-        subtotal += l.qty * PRICE_EGP
-    return {"lines": lines, "subtotal": subtotal, "shipping": SHIPPING_EGP, "total": subtotal + SHIPPING_EGP}
+        if p.get("sold_out"):
+            raise ValueError(f"{p['name']} is sold out")
+        if l.size not in p["sizes"]:
+            raise ValueError(f"size {l.size} is not available for {p['name']}")
+        lines.append({"name": p["name"], "id": l.id, "size": l.size, "qty": l.qty, "total": l.qty * p["price"]})
+        subtotal += l.qty * p["price"]
+    ship = settings.load()["shipping_fee"]
+    return {"lines": lines, "subtotal": subtotal, "shipping": ship, "total": subtotal + ship}
 
 
 def render(order: OrderIn, num: str, pr: dict) -> tuple[str, str, str]:
@@ -66,7 +72,7 @@ async def send_email(subject: str, text: str, body_html: str, transport=None) ->
         raise RuntimeError("order email is not configured")
     async with httpx.AsyncClient(timeout=20, transport=transport) as c:
         r = await c.post("https://api.resend.com/emails", headers={"Authorization": f"Bearer {RESEND_API_KEY}"},
-                         json={"from": ORDER_FROM, "to": [ORDER_EMAIL], "subject": subject, "text": text, "html": body_html})
+                         json={"from": ORDER_FROM, "to": [settings.load()["order_email"]], "subject": subject, "text": text, "html": body_html})
     if r.status_code >= 300:
         raise RuntimeError(f"email provider error {r.status_code}")
 
@@ -79,8 +85,7 @@ def mask_phone(p: str) -> str:
 def whatsapp_link(text: str) -> str:
     """Prefilled WhatsApp link so the customer can send the order themselves if email delivery fails."""
     from urllib.parse import quote
-    from .config import SUPPORT_PHONE
-    return f"https://wa.me/{SUPPORT_PHONE.lstrip('+')}?text={quote(text)}"
+    return f"https://wa.me/{settings.load()['whatsapp_number']}?text={quote(text)}"
 
 
 async def deliver(subject: str, text: str, body_html: str, transport=None, retries: int = 2) -> bool:
@@ -99,11 +104,7 @@ async def deliver(subject: str, text: str, body_html: str, transport=None, retri
 ORDER_TTL_SECONDS = 90 * 24 * 3600
 
 
-def kv_config():
-    import os
-    url = os.getenv("KV_REST_API_URL") or os.getenv("UPSTASH_REDIS_REST_URL") or ""
-    tok = os.getenv("KV_REST_API_TOKEN") or os.getenv("UPSTASH_REDIS_REST_TOKEN") or ""
-    return (url.rstrip("/"), tok) if url and tok else None
+from .kv import kv_config  # noqa: E402
 
 
 async def persist(num: str, text: str, pr: dict, transport=None) -> bool:

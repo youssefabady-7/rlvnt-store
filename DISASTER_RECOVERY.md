@@ -70,6 +70,14 @@ Every order is written to a private Upstash Redis store (key `order:<number>`, 9
 2. `python scripts/catalog_backup.py verify`, commit and push, redeploy.
 3. Take a new backup after any catalog change: `python scripts/catalog_backup.py backup`.
 
+### 5.6 Admin page, catalog and settings (live data)
+The catalog, prices and store settings now live in Upstash KV (keys `catalog:products`, `catalog:prev`, `settings`), edited at `/admin.html`. Product images are stored in KV as `img:<id>` (max 600 KB each, free tier has a total size limit). Orders are kept 90 days.
+- Backup: Admin > Backup > Export, save the JSON file. Do it monthly and before big edits.
+- Restore: Admin > Backup > Import that file. One-step undo for products: "Undo last change" on the Products tab.
+- If KV is empty or down, the site falls back to the seed `backend/app/products.json` in git (the original 35 products, price 800). Changes show on the site within about 15 seconds (per-instance cache).
+- Locked out (5 wrong passwords per IP in 15 min, 25 global per hour): wait, or delete keys `admin:lock:*` and `admin:f:*` in the Upstash Data Browser.
+- Forgot or rotate password: generate a new hash with `python -c "from app.admin import make_hash; print(make_hash('NEW'))"` (run in `backend/`), set it as the Vercel env var `ADMIN_PASSWORD_HASH`, redeploy. Never store the password in git or chat. Sessions last 8 hours; delete `admin:s:*` keys to sign everyone out.
+
 ### 5.4 Order email is down
 1. Check the WhatsApp chat for orders sent by customers. Recent `ORDER_FALLBACK` log lines (if still within retention) show order numbers, items and total to match against.
 2. Fix `RESEND_API_KEY` or `ORDER_EMAIL` in Vercel env vars, redeploy.

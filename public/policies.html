@@ -5,9 +5,11 @@
 <h2>Ordering and payment</h2>
 <p>Add pieces to your cart, press Place order, choose a size for each piece and enter your name, phone, city and address. Payment is cash on delivery only. Your order goes straight to RLVNT, and we may confirm by phone or WhatsApp before dispatch. Orders are subject to stock and verification. Seasonal and limited drops are sold while supplies last. All sizes are available. Promo codes cannot be combined unless a campaign says so.</p>
 <h2>Shipping and delivery</h2>
-<p>Flat shipping fee: 100 EGP per order. Delivery takes 3 to 5 days. Every order is packed in protective garment packaging. Please check the parcel on arrival and contact support quickly, with clear photos, if it is damaged.</p>
+<p>Flat shipping fee: <span data-s="shipping_fee">100</span> EGP per order. Delivery takes 3 to 5 days. Every order is packed in protective garment packaging. Please check the parcel on arrival and contact support quickly, with clear photos, if it is damaged.</p>
+<p id="deliveryNote" class="hidden"></p>
 <h2>Returns and exchanges</h2>
 <p>Send your request within 3 to 5 days after delivery. Garments must be unworn, unwashed, free of perfume, stains or pet hair, in original RLVNT packaging with all tags, and you need your order number. Size or style exchange: you cover return shipping. Defective or wrong item: RLVNT covers shipping and offers a replacement or refund after photo check. Standard returns: original and return shipping are not refunded. Final-sale items, washed or altered garments and items without tags cannot be returned.</p>
+<p id="returnNote" class="hidden"></p>
 <h2>Size chart</h2>
 <p>RLVNT fits are relaxed and oversized. Take your usual size for the intended loose fit, or one size down for a closer fit. Measurements are garment measurements laid flat, in cm, for tops (generic oversized hoodie chart, approximate). For sets, choose the same size for the bottoms and contact support for waist measurements.</p>
 <table class="sizes"><tr><th>Size</th><th>S</th><th>M</th><th>L</th><th>XL</th><th>XXL</th></tr>
@@ -23,5 +25,13 @@
 <h2>Service continuity</h2>
 <p>If our email or website has a problem, orders are also saved securely on our side, and if even that fails we will tell you on screen that your order is not confirmed yet, and give you a button to send it to us on WhatsApp at +201270383409. An order is confirmed once you see "Order placed", or once we receive your WhatsApp message. If the site is down, message us there and we will take your order by chat. Our catalog is backed up and can be restored within about an hour.</p>
 <h2>Support</h2>
-<p>Email: <a href="mailto:youssefabady6@gmail.com">youssefabady6@gmail.com</a><br>Phone / WhatsApp: <a href="tel:+201270383409">+201270383409</a></p>
-</div></body></html>
+<p>Email: <a id="pEmail" href="mailto:youssefabady6@gmail.com">youssefabady6@gmail.com</a><br>Phone / WhatsApp: <a id="pPhone" href="tel:+201270383409">+201270383409</a></p>
+</div><script src="config.js"></script><script>
+fetch((window.RLVNT_API || "") + "/api/products").then((r) => r.json()).then((d) => { const S = d.settings || {};
+  document.querySelectorAll('[data-s="shipping_fee"]').forEach((n) => { n.textContent = S.shipping_fee; });
+  if (S.support_email) { const a = document.getElementById("pEmail"); a.textContent = S.support_email; a.href = "mailto:" + S.support_email; }
+  if (S.support_phone) { const a = document.getElementById("pPhone"); a.textContent = S.support_phone; a.href = "tel:" + S.support_phone; }
+  [["deliveryNote", "Latest delivery update: ", S.delivery_text], ["returnNote", "Latest returns update: ", S.return_text]].forEach(([id, pre, t]) => { if (t) { const n = document.getElementById(id); n.textContent = pre + t; n.classList.remove("hidden"); } });
+}).catch(() => {});
+</script>
+</body></html>

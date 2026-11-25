@@ -6,7 +6,7 @@
 <link rel="icon" href="images/logo.png"><meta name="theme-color" content="#111111"><meta property="og:title" content="RLVNT | Streetwear"><meta property="og:description" content="Graphic streetwear. Every piece 800 EGP. Cash on delivery."><meta property="og:image" content="images/real-madrid-set.jpg"><meta property="og:type" content="website">
 <link rel="stylesheet" href="style.css"></head>
 <body>
-<div class="annc">Cash on delivery · 3 to 5 day delivery · 800 EGP every piece</div>
+<div class="annc" id="annc">Cash on delivery · 3 to 5 day delivery · 800 EGP every piece</div>
 <div class="progress" id="progress"></div>
 <header id="nav">
   <a class="brand" href="#top"><img src="images/logo.png" alt="RLVNT"></a>
@@ -20,13 +20,13 @@
   <div class="hero-copy">
     <p class="eyebrow reveal">Winter Collection</p>
     <h1 id="headline" aria-label="Wear what's relevant">WEAR WHAT'S<br>RELEVANT</h1>
-    <p class="sub reveal">Graphic pieces from football, film and the street. Every piece 800 EGP.</p>
+    <p class="sub reveal" id="heroSub">Graphic pieces from football, film and the street. Every piece 800 EGP.</p>
     <div class="cta reveal"><a class="btn" href="#shop">Shop the drop</a><button class="btn ghost" id="askBtn">Ask the assistant</button></div>
   </div>
   <div class="scroll-hint">Scroll</div>
 </section>
 
-<div class="marquee" aria-hidden="true"><div class="track"><span>RLVNT STREETWEAR</span><span>800 EGP EVERY PIECE</span><span>WINTER COLLECTION</span><span>OVERSIZED FITS</span><span>RLVNT STREETWEAR</span><span>800 EGP EVERY PIECE</span><span>WINTER COLLECTION</span><span>OVERSIZED FITS</span></div></div>
+<div class="marquee" aria-hidden="true"><div class="track"><span>RLVNT STREETWEAR</span><span class="mq-price">800 EGP EVERY PIECE</span><span>WINTER COLLECTION</span><span>OVERSIZED FITS</span><span>RLVNT STREETWEAR</span><span class="mq-price">800 EGP EVERY PIECE</span><span>WINTER COLLECTION</span><span>OVERSIZED FITS</span></div></div>
 
 <section class="shop" id="shop">
   <div class="shop-head reveal"><h2>The Drop</h2>
@@ -43,7 +43,7 @@
   </div>
 </section>
 
-<footer><img src="images/logo.png" alt="RLVNT"><div><a href="policies.html">Ordering, shipping, returns, care and privacy</a><p>Prices in EGP. Support: youssefabady6@gmail.com · +201270383409</p></div></footer>
+<footer><img src="images/logo.png" alt="RLVNT"><div><a href="policies.html">Ordering, shipping, returns, care and privacy</a><p id="footSupport">Prices in EGP. Support: youssefabady6@gmail.com · +201270383409</p></div></footer>
 
 <div class="qv" id="qv"><div class="qvbox"><button id="qvClose" class="x" aria-label="Close">×</button><div id="qvBody" class="qvbody"></div></div></div>
 <div class="scrim" id="scrim"></div>
@@ -77,7 +77,7 @@
   <div id="log" class="log"></div>
   <div id="chips" class="chips"></div>
   <form id="form"><input id="input" placeholder="Ask anything · اسأل أي حاجة" autocomplete="off" maxlength="500" dir="auto"><button aria-label="Send">➤</button></form>
-  <div class="chat-foot">AI assistant. For anything unsure, WhatsApp +201270383409</div>
+  <div class="chat-foot" id="chatFoot">AI assistant. For anything unsure, WhatsApp +201270383409</div>
 </section>
 <button id="toTop" class="totop" aria-label="Back to top">↑</button>
 <div id="toast" class="toast"></div>

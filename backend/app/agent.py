@@ -5,7 +5,7 @@ from .knowledge import system_prompt
 from . import guard
 from . import config
 from .config import (OPENROUTER_API_KEY, OPENROUTER_URL, MODEL, FALLBACK_MODELS,
-                     MAX_TOOL_STEPS, PRICE_EGP)
+                     MAX_TOOL_STEPS)
 
 
 TOOLS = [

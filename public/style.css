@@ -193,3 +193,5 @@ body.annc-off header{top:0}
 #form button{flex:none;border:0;background:var(--crimson);color:#fff;width:44px;height:44px;border-radius:50%;cursor:pointer;font-size:1.05rem;display:grid;place-items:center;transition:transform .2s,background .2s}#form button:hover{background:#6f1414;transform:scale(1.08)}
 .chat-foot{background:#f3efec;text-align:center;font-size:.66rem;color:#8a817b;padding:0 12px 8px}
 @media(max-width:720px){.fab{right:14px;bottom:14px;padding:6px}.fab span.lb{display:none}.chat{right:0;bottom:0;width:100vw;max-width:100vw;height:88dvh;border-radius:22px 22px 0 0}#form input{font-size:16px}}
+.card.soldout .pic img{filter:grayscale(1) opacity(.55)}.card.soldout .add{background:#ddd;color:#777;cursor:not-allowed}.card.soldout .pic:after{content:"SOLD OUT";position:absolute;left:10px;top:10px;background:#111;color:#fff;font-size:.62rem;letter-spacing:.14em;font-weight:800;padding:5px 9px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
