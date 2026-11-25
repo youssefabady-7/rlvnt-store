@@ -83,6 +83,7 @@ function renderGrid() {
 function openQV(p) {
   const q = $("qv"); const box = $("qvBody"); box.replaceChildren();
   const left = el("div", null, "qvimg"); const im = document.createElement("img"); im.src = p.image; im.alt = p.name; left.append(im);
+  if (p.images && p.images.length > 1) { const th = el("div", null, "gthumbs"); p.images.forEach((u) => { const b = el("button", null, "gthumb"); b.type = "button"; const t = document.createElement("img"); t.src = u; t.alt = p.name; b.append(t); b.onclick = (e) => { e.stopPropagation(); im.src = u; }; th.append(b); }); left.append(th); }
   left.addEventListener("mousemove", (e) => { const r = left.getBoundingClientRect(); im.style.transformOrigin = `${(e.clientX - r.left) / r.width * 100}% ${(e.clientY - r.top) / r.height * 100}%`; im.style.transform = "scale(1.9)"; });
   left.addEventListener("mouseleave", () => { im.style.transform = ""; });
   const right = el("div", null, "qvinfo");

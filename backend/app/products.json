@@ -50,7 +50,7 @@
  },
  {
   "id": "rl-004",
-  "name": "Gold Signature Sweatshirt",
+  "name": "Michael Jackson Sweatshirt",
   "category": "sweatshirts",
   "tags": [
    "black",
@@ -59,7 +59,7 @@
    "graphic",
    "winter"
   ],
-  "description": "Gold Signature Sweatshirt from RLVNT.",
+  "description": "Black oversized sweatshirt with a gold Michael Jackson signature graphic.",
   "image": "images/a-001.jpg"
  },
  {
@@ -108,7 +108,7 @@
  },
  {
   "id": "rl-008",
-  "name": "Boxer Graphic Sweatshirt",
+  "name": "Jude Bellingham White Sweatshirt",
   "category": "sweatshirts",
   "tags": [
    "boxer",
@@ -117,7 +117,7 @@
    "graphic",
    "winter"
   ],
-  "description": "Boxer Graphic Sweatshirt from RLVNT.",
+  "description": "White oversized sweatshirt with a Jude Bellingham Real Madrid collage.",
   "image": "images/a-005.jpg"
  },
  {
@@ -135,7 +135,7 @@
  },
  {
   "id": "rl-010",
-  "name": "Star Script Sweatshirt",
+  "name": "Brand Dream Big Sweatshirt",
   "category": "sweatshirts",
   "tags": [
    "black",
@@ -145,12 +145,12 @@
    "graphic",
    "winter"
   ],
-  "description": "Star Script Sweatshirt from RLVNT.",
+  "description": "Black oversized sweatshirt with a neon Brand star and Dream Big, Achieve Bigger.",
   "image": "images/a-007.jpg"
  },
  {
   "id": "rl-011",
-  "name": "Scarface Sweatshirt",
+  "name": "Scarface White Sweatshirt",
   "category": "sweatshirts",
   "tags": [
    "scarface",
@@ -160,7 +160,7 @@
    "graphic",
    "winter"
   ],
-  "description": "Scarface Sweatshirt from RLVNT.",
+  "description": "White oversized sweatshirt with a red and black Scarface poster graphic.",
   "image": "images/a-008.jpg"
  },
  {
@@ -226,7 +226,7 @@
  },
  {
   "id": "rl-016",
-  "name": "Black Graphic Sweatshirt and Sweatpants Set",
+  "name": "Cristiano Ronaldo Man Utd Sweatshirt and Pants Set",
   "category": "sets",
   "tags": [
    "black",
@@ -235,7 +235,7 @@
    "set",
    "monochrome"
   ],
-  "description": "Black Graphic Sweatshirt and Sweatpants Set from RLVNT.",
+  "description": "Black cropped Ronaldo Man Utd sweatshirt with matching Nike wide-leg sweatpants.",
   "image": "images/b-004.jpg"
  },
  {
@@ -327,8 +327,12 @@
    "doom",
    "marvel"
   ],
-  "description": "Washed grey oversized hoodie with a Doctor Doom embroidered-style chest graphic.",
-  "image": "images/c-004.jpg"
+  "description": "Washed grey oversized hoodie with a Doctor Doom embroidered-style chest graphic. Front and back views.",
+  "image": "images/c-004.jpg",
+  "images": [
+   "images/c-004.jpg",
+   "images/c-017.jpg"
+  ]
  },
  {
   "id": "rl-024",
