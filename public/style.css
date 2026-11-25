@@ -172,3 +172,4 @@ body.annc-off header{top:0}
   .tools input{grid-column:1/-1}
   .tools span{text-align:right}
 }
+@media(max-width:400px){h1{font-size:2.35rem}}
